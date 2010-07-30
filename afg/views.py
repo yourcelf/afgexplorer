@@ -174,6 +174,7 @@ SEARCH_PARAMS = {
     'attack_on': ('attack_on', unicode),
     'unit_name': ('unit_name', unicode),
     'type_of_unit': ('type_of_unit', unicode),
+    'reporting_unit': ('reporting_unit', unicode),
     'friendly_wia__gte': ('friendly_wia__gte', int),
     'friendly_wia__lte': ('friendly_wia__lte', int),
     'host_nation_wia__gte': ('host_nation_wia__gte', int),
