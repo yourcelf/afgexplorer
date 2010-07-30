@@ -280,8 +280,13 @@ table {
 * html .sidebar {
   overflow-x: hidden;
 }
+/* line 118, ././style.sass */
+.sidebar p.about {
+  text-align: center;
+  margin-bottom: 0.5em;
+}
 
-/* line 119, ././style.sass */
+/* line 123, ././style.sass */
 .main {
   width: 649px;
   display: inline;
@@ -294,12 +299,12 @@ table {
   overflow-x: hidden;
 }
 
-/* line 125, ././style.sass */
+/* line 129, ././style.sass */
 .constraints {
   background-color: #eeeeee;
   padding: 1em;
 }
-/* line 128, ././style.sass */
+/* line 132, ././style.sass */
 .constraints .constraint {
   background-color: #ffaa33;
   padding: 0.2em;

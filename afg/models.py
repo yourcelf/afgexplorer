@@ -50,7 +50,7 @@ class Phrase(models.Model):
     phrase = models.CharField(max_length=255, unique=True, db_index=True)
     entries = models.ManyToManyField(DiaryEntry)
     # denormalization for performance:
-    entry_count = models.IntegerField(default=0)
+    entry_count = models.IntegerField(default=0, db_index=True)
 
     def __unicode__(self):
         return self.phrase
