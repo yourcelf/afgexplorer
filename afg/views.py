@@ -36,17 +36,18 @@ def show_entry(request, rid, template='afg/entry_page.html'):
 
     phrase_ids = [p.id for p in phrases]
 
-    cursor = connection.cursor()
-    # Using modulus not params here because we need to do funky literalizing of
-    # the table
-    cursor.execute("""
-        SELECT pe.phrase_id, d.id FROM afg_phrase_entries pe 
-        INNER JOIN afg_diaryentry d ON pe.diaryentry_id=d.id
-        WHERE pe.phrase_id IN (SELECT * FROM (VALUES %s) AS phrase_id_set);
-        """ % (",".join("(%s)" % i for i in phrase_ids)))
     dest_ids = defaultdict(list)
-    for row in cursor.fetchall():
-        dest_ids[int(row[0])].append(row[1])
+    if phrase_ids:
+        cursor = connection.cursor()
+        # Using modulus not params here because we need to do funky literalizing of
+        # the table
+        cursor.execute("""
+            SELECT pe.phrase_id, d.id FROM afg_phrase_entries pe 
+            INNER JOIN afg_diaryentry d ON pe.diaryentry_id=d.id
+            WHERE pe.phrase_id IN (SELECT * FROM (VALUES %s) AS phrase_id_set);
+            """ % (",".join("(%s)" % i for i in phrase_ids)))
+        for row in cursor.fetchall():
+            dest_ids[int(row[0])].append(row[1])
 
     phrase_entries = [(phrase, dest_ids[phrase.id]) for phrase in phrases]
 
