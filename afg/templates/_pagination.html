@@ -1,0 +1,16 @@
+{% if page.object_list|length > 0 %}
+<div class='pagination'>
+    {{ page.paginator.count }} results.  
+
+    {% if page.has_previous %}
+        <a href='{{ qstring }}&p={{ page.previous_page_number }}'>previous</a>
+    {% endif %}
+    <span class='current'>
+        Page {{ page.number }} of {{ page.paginator.num_pages }}
+    </span>
+
+    {% if page.has_next %}
+        <a href='{{ qstring }}&p={{ page.next_page_number }}'>next</a>
+    {% endif %}
+</div>
+{% endif %}

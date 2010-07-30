@@ -1,0 +1,144 @@
+<div class='entry'>
+
+<div class='sidebar'>
+    <form method='get' action='{% url afg.search %}' class='search'>
+        <input type='text' value='' name='q' /><input type='submit' value='search' />
+    </form>
+    <table class='metadata'>
+        <tr>
+            <th>Type</th>
+            <td><a href='{% url afg.search %}?type={{ entry.type }}'>{{ entry.type }}</a></td>
+        </tr><tr>
+            <th>Category</th>
+            <td><a href='{% url afg.search %}?category={{ entry.category }}'>{{ entry.category }}</a></td>
+        </tr><tr>
+            <th>Tracking number</th>
+            <td>{{ entry.tracking_number }}</td>
+        </tr><tr>
+            <th>Region</th>
+            <td><a href='{% url afg.search %}?region={{ entry.region }}'>{{ entry.region }}</a></td>
+        </tr>
+        {% if entry.reporting_unit %}
+        <tr>
+            <th>Reporting unit</th>
+            <td><a href='{% url afg.search %}?reporting_unit={{ entry.reporting_unit }}'>{{ entry.reporting_unit }}</a></td>
+        </tr>
+        {% endif %}
+        {% if entry.unit_name %}<tr>
+            <th>Unit name</th>
+            <td><a href='{% url afg.search %}?unit_name={{ entry.unit_name }}'>{{ entry.unit_name }}</a></td>
+        </tr>
+        {% endif %}
+        {% if entry.type_of_unit %}<tr>
+            <th>Type of unit</th>
+            <td><a href='{% url afg.search %}?type_of_unit={{ entry.type_of_unit }}'>{{ entry.type_of_unit }}</a></td>
+        </tr>
+        {% endif %}
+        {% if entry.friendly_wia %}
+        <tr>
+            <td>Friendly wounded</td>
+            <td>{{ entry.friendly_wia }}</td>
+        </tr>
+        {% endif %}
+        {% if entry.friendly_kia %}
+        <tr>
+            <td>Friendly killed</td>
+            <td>{{ entry.friendly_kia }}</td>
+        </tr>
+        {% endif %}
+        {% if entry.host_nation_wia %}
+        <tr>
+            <td>Host nation wounded</td>
+            <td>{{ entry.host_nation_wia  }}</td>
+        </tr>
+        {% endif %}
+        {% if entry.host_nation_kia %}
+        <tr>
+            <td>Host nation killed</td>
+            <td>{{ entry.host_nation_kia  }}</td>
+        </tr>
+        {% endif %}
+        {% if entry.civilian_wia %}
+        <tr>
+            <td>Civilian wounded</td>
+            <td>{{ entry.civilian_wia }}</td>
+        </tr>
+        {% endif %}
+        {% if entry.civilian_kia %}
+        <tr>
+            <td>Civilian killed</td>
+            <td>{{ entry.civilian_kia }}</td>
+        </tr>
+        {% endif %}
+        {% if entry.enemy_wia %}
+        <tr>
+            <td>Enemy wounded</td>
+            <td>{{ entry.enemy_wia }}</td>
+        {% endif %}
+        {% if entry.enemy_kia %}
+        <tr>
+            <td>Enemy killed</td>
+            <td>{{ entry.enemy_kia }}</td>
+        </tr>
+        {% endif %}
+        {% if entry.enemy_detained %}
+        <tr>
+            <td>Enemy detained</td>
+            <td>{{ entry.enemy_detained   }}</td>
+        </tr>
+        {% endif %}
+    </table>
+    <div id='map' style='width: 100%; height: 300px;'></div>
+    <script type='text/javascript' src='http://maps.google.com/maps/api/js?sensor=false'></script>
+    {% if entry.latitude and entry.longitude %}
+        <script type='text/javascript'>
+            $(document).ready(function() {
+                var latlng = new google.maps.LatLng({{ entry.latitude }}, {{ entry.longitude }});
+                var map = new google.maps.Map(document.getElementById('map'), {
+                    zoom: 8,
+                    center: latlng,
+                    mapTypeId: google.maps.MapTypeId.HYBRID
+                });
+                var marker = new google.maps.Marker({
+                    position: latlng,
+                    map: map
+                });
+            });
+        </script>
+    {% endif %}
+</div>
+<div class='main'>
+    <h1>{{ entry.title }}</h1>
+    {{ entry.date }}
+    {% if user.is_authenticated %}
+    <a href='/admin/afg/diaryentry/{{ entry.pk }}'>admin</a>
+    {% endif %}
+    <div class='summary' id='entry{{ entry.pk }}'></div>
+</div>
+<script type='text/javascript'>
+    // Load data
+    var summary = "{{ entry.summary|escapejs }}";
+    var phrases = {{% for phrase, dest_ids in phrase_entries %}
+        "{{ phrase.phrase|escapejs }}": [
+            {% for dest_id in dest_ids %}{% if dest_id != entry.id %}
+                "{{ dest_id }}"{% if not forloop.last %},{% endif %}
+            {% endif %}{% endfor %}
+        ]{% if not forloop.last %},{% endif %}
+    {% endfor %}};
+    var linkPhrases = {};
+    for (var phrase in phrases) {
+        for (var i = 0; i < phrases[phrase].length; i++) {
+            var link = phrases[phrase][i];
+            if (linkPhrases[link] == undefined) {
+                linkPhrases[link] = [];
+            }
+            linkPhrases[link].push(phrase);
+        }
+    }
+    displayText(linkify(summary, phrases), 
+        $("#entry{{ entry.pk }}"),
+        "{% url afg.entry_popup %}", 
+        "<img src='{{ MEDIA_URL }}img/spinner.gif' alt='loading ...' />"
+    );
+</script>
+</div>

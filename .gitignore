@@ -1,0 +1,7 @@
+data/*
+*.pyc
+*.swp
+.sass-cache
+settings.py
+nohup.out
+pip-log.txt

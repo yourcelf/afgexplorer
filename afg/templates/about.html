@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}About{% endblock %}
+{% block content %}
+<h1>Afghan War Diaries Explorer</h1>
+<div class='main'>
+<p><b><a href='/'>diarydig.org</a></b> is an independently produced website
+which provides an easy way to search through the 
+<a href='http://wikileaks.org/wiki/Afghan_War_Diary,_2004-2010'>Afghan War Diaries</a>, 
+which were made public by <a href='http://wikileaks.org/'>Wikileaks</a> 
+on 25th July 2010.  The documents are set of over 76,000 reports (with more
+coming in the future) which cover the war in Afghanistan from 2004 to 2009.
+</p>
+<p>From the <a href='{% url afg.search %}'>search page</a>, you can browse
+through all of the documents that have been released, organized by type,
+category, date, number of casualties, and many other properties.  From any <a
+    href='{% url afg.show_entry 1026228 %}'>document page</a>, clicking on the
+<span class='links numlinks9' style='cursor: auto'>green underlined</span> text
+will open a popup that links to other documents that contain those phrases,
+making it possible to see important search terms and connections that you might
+not otherwise notice.</p>
+<p>Our hope is that this tool will be helpful to reporters and researchers who
+are interested in learning more about the US's war in Afghanistan and making
+sense of this important database.  If you wish to support this work, we
+encourage you to make a <a
+    href='http://wikileaks.org/wiki/WikiLeaks:Donate'>donation to wikileaks</a>
+</p>
+
+</div>
+{% endblock %}

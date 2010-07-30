@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <link rel="stylesheet" type="text/css" media="all" href="{{MEDIA_URL}}css/style.css" />
+        <title>{% block title %}{% endblock %} -- Afghan War Diaries explorer</title>
+        <script type='text/javascript' src='{{MEDIA_URL}}js/jquery.min.js'></script>
+        <script type='text/javascript' src='{{MEDIA_URL}}js/script.js'></script>
+        {% block head %}{% endblock %}
+    </head>
+    <body>
+        {% block content %}
+        {% endblock %}
+        <!--<a href="http://github.com/yourcelf/afgexplorer"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub" /></a>-->
+    </body>
+</html>

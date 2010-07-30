@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Search{% endblock %}
+{% block content %}
+
+<div class='sidebar'>
+    <h1>Afghan War Diaries Explorer</h1>
+    Need help? <a href='{% url afg.about %}'>About</a>
+    <h2>Phrase</h2>
+    <form method='get' action=''>
+        <input type='text' value='{{ params.q }}' name='q' />
+        <input type='submit' value='search' />
+    {% for param, choice_opts in choices.items %}
+    <h2>{{ choice_opts.title }}</h2>
+    {% if choice_opts.value %}
+        <input type='hidden' name='{{ param }}' value='{{ choice_opts.value }}' />
+    {% endif %}
+    <ul>
+        {% for choice in choice_opts.choices %}
+        <li>
+            {% if choice_opts.choices|length > 1 %}
+                <a href="{{ qstring }}&{{ param }}={{choice.1}}">{% firstof choice.0 "None" %}</a>
+            {% else %}
+                {% firstof choice.0 "None" %}
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endfor %}
+    {% for param, choice_opts in min_max_choices.items %}
+    <h2>{{ choice_opts.title }}</h2>
+    <ul>
+    <li>Minimum: <input class='minmax' size='2' type='text' value='{{ choice_opts.min_value }}' name='{{param}}__gte' /> ({{ choice_opts.min }})</li>
+    <li>Maximum: <input class='minmax' size='2' type='text' value='{{ choice_opts.max_value }}' name='{{param}}__lte' /> ({{ choice_opts.max }})</li>
+    </ul>
+        
+    {% endfor %}
+    </form>
+</div>
+<div class='results'>
+    <div class='constraints'>
+        Searching for: 
+        {% if not constraints %}
+            everything
+        {% endif %}
+        {% for param, value in constraints.items %}
+        <span class='constraint'>{{ value.title }}: {{ value.value }} <a href='{{ value.removelink }}'>(X)</a></span>
+        {% endfor %}
+    </div>
+    {% if entries %}
+        {% include "_pagination.html" %}
+        <hr>
+        {% include "afg/entry_table.html" %}
+        <hr>
+        {% include "_pagination.html" %}
+    {% else %}
+        No results.
+    {% endif %}
+</div>
+{% endblock %}

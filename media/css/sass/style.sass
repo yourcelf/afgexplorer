@@ -1,0 +1,131 @@
+@import "blueprint"
+@import "compass/utilities/general/clearfix"
+@import "compass/reset"
+
+body
+  //font-family: cambria, georgia, times, "times new roman", serif
+  font-family: "helvetica neue", arial, helvetica, sans-serif 
+  font-size: 10pt
+  line-height: 1.5em
+  margin: 1em
+
+h1, h2, h3, h4, h5, h6
+  font-size: 1.8em
+  font-family: Sniglet
+  margin-top: 0.5em
+  margin-bottom: 0.5em
+  font-weight: bold
+  line-height: 1em
+h2 
+  font-size: 1.4em
+h3
+  font-size: 1.2em
+h4
+  font-size: 1em
+h5
+  font-size: 0.8em
+h6
+  font-size: 0.6em
+p
+  margin-top: 0.5em
+  margin-bottom: 1.5em
+.mono
+  font-family: monospace
+small
+  font-size: 0.8em
+strong
+  font-weight: bold
+  font-size: larger
+li
+  list-style-type: disc
+  margin-left: 1em
+li.searchresult
+  list-style-type: none
+  margin-top: 1.5em
+table
+  border-collapse: collapse
+
+.links
+  border-bottom: 1px solid #efe
+  cursor: pointer
+  color: #030
+
+.numlinks1
+  border-bottom: 1px solid #dfd
+.numlinks2
+  border-bottom: 2px solid #dfd
+.numlinks3
+  border-bottom: 3px solid #dfd
+.numlinks4
+  border-bottom: 4px solid #dfd
+.numlinks5
+  border-bottom: 5px solid #dfd
+.numlinks6
+  border-bottom: 6px solid #dfd
+.numlinks7
+  border-bottom: 7px solid #dfd
+.numlinks8
+  border-bottom: 8px solid #dfd
+.numlinks9
+  border-bottom: 9px solid #dfd
+.numlinks10
+  border-bottom: 10px solid #dfd
+
+.popup
+  max-width: 80%
+  position: absolute
+  border: 1px solid black
+  padding: 1em
+  padding-top: 2em
+  background-color: white
+  .close
+    position: absolute
+    right: 0.2em 
+    top: 0
+    color: blue
+    text-decoration: underline
+    cursor: pointer
+  p
+    margin: 0
+
+.date
+  color: #555
+.category, .region
+  color: #500
+
+.summary
+  line-height: 2em
+
+.metadata
+  font-size: smaller
+  th
+    font-weight: bold
+  th, td
+    text-align: right
+    border: 1px solid #ddd
+    padding: 0.5em
+  td + td
+    text-align: center
+
+.entry
+  +container
+
+.sidebar
+  float: left
+  margin-right: 1em
+  background-color: #eee
+  +column(7)
+
+.main
+  //float: left
+  width: 649px
+  +column(17, true)
+  
+  
+.constraints
+  background-color: #eee
+  padding: 1em
+  .constraint
+    background-color: #fa3
+    padding: 0.2em
+    margin-right: 1em

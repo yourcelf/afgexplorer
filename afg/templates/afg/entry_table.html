@@ -1,0 +1,11 @@
+<ul>
+    {% for entry, stub in entries %}
+    <li class='searchresult'>
+    <a href='{% url afg.show_entry entry.report_key %}'>{{ entry.title }}</a> 
+    <span class='date'>{{ entry.date }}</span><br />
+    <span class='category'>{{ entry.category }}</span>,
+    <span class='region'>{{ entry.region }}</span>
+    <p>{{ stub }}</p>
+    </li>
+    {% endfor %}
+</ul>

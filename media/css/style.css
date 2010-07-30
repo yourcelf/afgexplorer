@@ -1,0 +1,307 @@
+/* line 14, /var/lib/gems/1.8/gems/compass-0.10.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, font, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-weight: inherit;
+  font-style: inherit;
+  font-size: 100%;
+  font-family: inherit;
+  vertical-align: baseline;
+}
+
+/* line 17, /var/lib/gems/1.8/gems/compass-0.10.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+body {
+  line-height: 1;
+  color: black;
+  background: white;
+}
+
+/* line 19, /var/lib/gems/1.8/gems/compass-0.10.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+ol, ul {
+  list-style: none;
+}
+
+/* line 21, /var/lib/gems/1.8/gems/compass-0.10.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  vertical-align: middle;
+}
+
+/* line 23, /var/lib/gems/1.8/gems/compass-0.10.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+caption, th, td {
+  text-align: left;
+  font-weight: normal;
+  vertical-align: middle;
+}
+
+/* line 25, /var/lib/gems/1.8/gems/compass-0.10.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+q, blockquote {
+  quotes: "" "";
+}
+/* line 96, /var/lib/gems/1.8/gems/compass-0.10.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+q:before, q:after, blockquote:before, blockquote:after {
+  content: "";
+}
+
+/* line 27, /var/lib/gems/1.8/gems/compass-0.10.2/frameworks/compass/stylesheets/compass/reset/_utilities.scss */
+a img {
+  border: none;
+}
+
+/* line 5, ././style.sass */
+body {
+  font-family: "helvetica neue", arial, helvetica, sans-serif;
+  font-size: 10pt;
+  line-height: 1.5em;
+  margin: 1em;
+}
+
+/* line 12, ././style.sass */
+h1, h2, h3, h4, h5, h6 {
+  font-size: 1.8em;
+  font-family: Sniglet;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  font-weight: bold;
+  line-height: 1em;
+}
+
+/* line 19, ././style.sass */
+h2 {
+  font-size: 1.4em;
+}
+
+/* line 21, ././style.sass */
+h3 {
+  font-size: 1.2em;
+}
+
+/* line 23, ././style.sass */
+h4 {
+  font-size: 1em;
+}
+
+/* line 25, ././style.sass */
+h5 {
+  font-size: 0.8em;
+}
+
+/* line 27, ././style.sass */
+h6 {
+  font-size: 0.6em;
+}
+
+/* line 29, ././style.sass */
+p {
+  margin-top: 0.5em;
+  margin-bottom: 1.5em;
+}
+
+/* line 32, ././style.sass */
+.mono {
+  font-family: monospace;
+}
+
+/* line 34, ././style.sass */
+small {
+  font-size: 0.8em;
+}
+
+/* line 36, ././style.sass */
+strong {
+  font-weight: bold;
+  font-size: larger;
+}
+
+/* line 39, ././style.sass */
+li {
+  list-style-type: disc;
+  margin-left: 1em;
+}
+
+/* line 42, ././style.sass */
+li.searchresult {
+  list-style-type: none;
+  margin-top: 1.5em;
+}
+
+/* line 45, ././style.sass */
+table {
+  border-collapse: collapse;
+}
+
+/* line 48, ././style.sass */
+.links {
+  border-bottom: 1px solid #eeffee;
+  cursor: pointer;
+  color: #003300;
+}
+
+/* line 53, ././style.sass */
+.numlinks1 {
+  border-bottom: 1px solid #ddffdd;
+}
+
+/* line 55, ././style.sass */
+.numlinks2 {
+  border-bottom: 2px solid #ddffdd;
+}
+
+/* line 57, ././style.sass */
+.numlinks3 {
+  border-bottom: 3px solid #ddffdd;
+}
+
+/* line 59, ././style.sass */
+.numlinks4 {
+  border-bottom: 4px solid #ddffdd;
+}
+
+/* line 61, ././style.sass */
+.numlinks5 {
+  border-bottom: 5px solid #ddffdd;
+}
+
+/* line 63, ././style.sass */
+.numlinks6 {
+  border-bottom: 6px solid #ddffdd;
+}
+
+/* line 65, ././style.sass */
+.numlinks7 {
+  border-bottom: 7px solid #ddffdd;
+}
+
+/* line 67, ././style.sass */
+.numlinks8 {
+  border-bottom: 8px solid #ddffdd;
+}
+
+/* line 69, ././style.sass */
+.numlinks9 {
+  border-bottom: 9px solid #ddffdd;
+}
+
+/* line 71, ././style.sass */
+.numlinks10 {
+  border-bottom: 10px solid #ddffdd;
+}
+
+/* line 74, ././style.sass */
+.popup {
+  max-width: 80%;
+  position: absolute;
+  border: 1px solid black;
+  padding: 1em;
+  padding-top: 2em;
+  background-color: white;
+}
+/* line 81, ././style.sass */
+.popup .close {
+  position: absolute;
+  right: 0.2em;
+  top: 0;
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
+}
+/* line 88, ././style.sass */
+.popup p {
+  margin: 0;
+}
+
+/* line 91, ././style.sass */
+.date {
+  color: #555555;
+}
+
+/* line 93, ././style.sass */
+.category, .region {
+  color: #550000;
+}
+
+/* line 96, ././style.sass */
+.summary {
+  line-height: 2em;
+}
+
+/* line 99, ././style.sass */
+.metadata {
+  font-size: smaller;
+}
+/* line 101, ././style.sass */
+.metadata th {
+  font-weight: bold;
+}
+/* line 103, ././style.sass */
+.metadata th, .metadata td {
+  text-align: right;
+  border: 1px solid #dddddd;
+  padding: 0.5em;
+}
+/* line 107, ././style.sass */
+.metadata td + td {
+  text-align: center;
+}
+
+/* line 110, ././style.sass */
+.entry {
+  width: 950px;
+  margin: 0 auto;
+  overflow: hidden;
+  display: inline-block;
+}
+/* line 8, /var/lib/gems/1.8/gems/compass-0.10.2/frameworks/compass/stylesheets/compass/utilities/general/./_hacks.scss */
+.entry {
+  display: block;
+}
+
+/* line 113, ././style.sass */
+.sidebar {
+  float: left;
+  margin-right: 1em;
+  background-color: #eeeeee;
+  display: inline;
+  float: left;
+  margin-right: 10px;
+  width: 270px;
+}
+/* line 138, /var/lib/gems/1.8/gems/compass-0.10.2/frameworks/blueprint/stylesheets/./blueprint/_grid.scss */
+* html .sidebar {
+  overflow-x: hidden;
+}
+
+/* line 119, ././style.sass */
+.main {
+  width: 649px;
+  display: inline;
+  float: left;
+  margin-right: 0;
+  width: 670px;
+}
+/* line 138, /var/lib/gems/1.8/gems/compass-0.10.2/frameworks/blueprint/stylesheets/./blueprint/_grid.scss */
+* html .main {
+  overflow-x: hidden;
+}
+
+/* line 125, ././style.sass */
+.constraints {
+  background-color: #eeeeee;
+  padding: 1em;
+}
+/* line 128, ././style.sass */
+.constraints .constraint {
+  background-color: #ffaa33;
+  padding: 0.2em;
+  margin-right: 1em;
+}
