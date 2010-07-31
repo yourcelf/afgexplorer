@@ -58,7 +58,7 @@ function linkify(text, phrases) {
                 out.push("'>");
             }
         }
-        out.push(text[i]);
+        out.push(text.substring(i, i+1));
     }
     return [out.join("")];
 }
