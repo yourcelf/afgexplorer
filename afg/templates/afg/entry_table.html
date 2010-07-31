@@ -4,7 +4,8 @@
     <a href='{% url afg.show_entry entry.report_key %}'>{{ entry.title }}</a> 
     <span class='date'>{{ entry.date }}</span><br />
     <span class='category'>{{ entry.category }}</span>,
-    <span class='region'>{{ entry.region }}</span>
+    <span class='region'>{{ entry.region }}</span>,
+    <span class='casualties' title='{{ entry.casualty_summary }}'>{{ entry.total_casualties }} casualties</span>
     <p>{{ stub }}</p>
     </li>
     {% endfor %}

@@ -3,9 +3,11 @@
 {% block content %}
 
 <div class='sidebar'>
-    <h1>Afghan War Diaries Explorer</h1>
-    Need help? <a href='{% url afg.about %}'>About</a>
-    <h2>Phrase</h2>
+    {% include "afg/_logo.html" %}
+    <ul>
+        <li><a href='{% url afg.random_entry %}'>Random entry</a></li>
+    </ul>
+    <br />
     <form method='get' action=''>
         <input type='text' value='{{ params.q }}' name='q' />
         <input type='submit' value='search' />
@@ -40,13 +42,28 @@
     <div class='constraints'>
         Searching for: 
         {% if not constraints %}
-            everything
+            {% if about %}
+                Truth
+            {% else %}
+                everything
+            {% endif %}
         {% endif %}
         {% for param, value in constraints.items %}
         <span class='constraint'>{{ value.title }}: {{ value.value }} <a href='{{ value.removelink }}'>(X)</a></span>
         {% endfor %}
+        {% if not about %}
+            <div class='sort'>Sort by:
+                <a href='{{ sort.date }}' class='sortdir'>{% if sort.date_asc %}&uarr;{% else %}{% if sort.date_desc %}&darr;{% endif %}{% endif %}</a>
+                <a href='{{ sort.date }}'>Date</a> 
+                | 
+                <a href='{{ sort.total_casualties }}' class='sortdir'>{% if sort.total_casualties_asc %}&uarr;{% else %}{% if sort.total_casualties_desc %}&darr;{% endif %}{% endif %}</a>
+                <a href='{{ sort.total_casualties }}'>Casualties</a>
+            </div>
+        {% endif %}
     </div>
-    {% if entries %}
+    {% if about %}
+        {% include "about.html" %}
+    {% else %}{% if entries %}
         {% include "_pagination.html" %}
         <hr>
         {% include "afg/entry_table.html" %}
@@ -54,6 +71,6 @@
         {% include "_pagination.html" %}
     {% else %}
         No results.
-    {% endif %}
+    {% endif %}{% endif %}
 </div>
 {% endblock %}

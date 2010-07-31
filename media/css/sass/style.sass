@@ -3,15 +3,14 @@
 @import "compass/reset"
 
 body
-  //font-family: cambria, georgia, times, "times new roman", serif
   font-family: "helvetica neue", arial, helvetica, sans-serif 
   font-size: 10pt
   line-height: 1.5em
   margin: 1em
 
 h1, h2, h3, h4, h5, h6
+  font-family: cambria, georgia, times, "times new roman", serif
   font-size: 1.8em
-  font-family: Sniglet
   margin-top: 0.5em
   margin-bottom: 0.5em
   font-weight: bold
@@ -88,9 +87,19 @@ table
   p
     margin: 0
 
+.logo
+  text-align: center
+  a, a:link, a:visited
+    color: #009
+    text-decoration: none
+  h1
+    font-size: 24pt
+  h2
+    font-size: 12pt
+
 .date
   color: #555
-.category, .region
+.category, .region, .casualties
   color: #500
 
 .summary
@@ -132,3 +141,7 @@ table
     background-color: #fa3
     padding: 0.2em
     margin-right: 1em
+  .sort
+    float: right
+    a.sortdir, a.sortdir:visited
+      text-decoration: none

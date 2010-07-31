@@ -1,7 +1,7 @@
 <div class='entry'>
 
 <div class='sidebar'>
-    <p class='about'>Need help? <a href='{% url afg.about %}'>About</a></p>
+    {% include "afg/_logo.html" %}
     <form method='get' action='{% url afg.search %}' class='search'>
         <input type='text' value='' name='q' /><input type='submit' value='search' />
     </form>
@@ -33,6 +33,12 @@
         {% if entry.type_of_unit %}<tr>
             <th>Type of unit</th>
             <td><a href='{% url afg.search %}?type_of_unit={{ entry.type_of_unit }}'>{{ entry.type_of_unit }}</a></td>
+        </tr>
+        {% endif %}
+        {% if entry.total_casualties %}
+        <tr>
+            <td>Total casualties</td>
+            <td title='{{ entry.casualty_summary }}'>{{ entry.total_casualties }}</td>
         </tr>
         {% endif %}
         {% if entry.friendly_wia %}
@@ -86,6 +92,60 @@
         <tr>
             <td>Enemy detained</td>
             <td>{{ entry.enemy_detained   }}</td>
+        </tr>
+        {% endif %}
+        {% if entry.attack_on %}
+        <tr>
+            <th>Attack on</th>
+            <td><a href='{% url afg.search %}?attack_on={{ entry.attack_on }}'>{{ entry.attack_on }}</a></td>
+        </tr>
+        {% endif %}
+        {% if entry.mgrs %}
+        <tr>
+            <th>MGRS</th>
+            <td><a href='{% url afg.search %}?mgrs={{ entry.mgrs }}'>{{ entry.mgrs }}</a></td>
+        </tr>
+        {% endif %}
+        {% if entry.originator_group %}
+        <tr>
+            <th>Originator group</th>
+            <td><a href='{% url afg.search %}?originator_group={{ entry.originator_group }}'>{{ entry.originator_group }}</a></td>
+        </tr>
+        {% endif %}
+        {% if entry.updated_by_group %}
+        <tr>
+            <th>Updated by group</th>
+            <td><a href='{% url afg.search %}?updated_by_group={{ entry.updated_by_group }}'>{{ entry.updated_by_group }}</a></td>
+        </tr>
+        {% endif %}
+        {% if entry.ccir %}
+        <tr>
+            <th>CCIR</th>
+            <td><a href='{% url afg.search %}?ccir={{ entry.ccir }}'>{{ entry.ccir }}</a></td>
+        </tr>
+        {% endif %}
+        {% if entry.sigact %}
+        <tr>
+            <th>Sigact</th>
+            <td><a href='{% url afg.search %}?sigact={{ entry.sigact }}'>{{ entry.sigact }}</a></td>
+        </tr>
+        {% endif %}
+        {% if entry.affiliation %}
+        <tr>
+            <th>Affiliation</th>
+            <td><a href='{% url afg.search %}?affiliation={{ entry.affiliation }}'>{{ entry.affiliation }}</a></td>
+        </tr>
+        {% endif %}
+        {% if entry.dcolor %}
+        <tr>
+            <th>Dcolor</th>
+            <td><a href='{% url afg.search %}?dcolor={{ entry.dcolor }}'>{{ entry.dcolor }}</a></td>
+        </tr>
+        {% endif %}
+        {% if entry.classification %}
+        <tr>
+            <th>Classification</th>
+            <td><a href='{% url afg.search %}?classification={{ entry.classification }}'>{{ entry.classification }}</a></td>
         </tr>
         {% endif %}
     </table>

@@ -37,6 +37,9 @@ class DiaryEntry(models.Model):
     dcolor = models.CharField(max_length=255, db_index=True)
     classification = models.CharField(max_length=255, db_index=True)
 
+    # denormalization for sorting
+    total_casualties = models.IntegerField(default=0, db_index=True)
+
     def __unicode__(self):
         return self.title
 
@@ -45,6 +48,20 @@ class DiaryEntry(models.Model):
                 '-host_nation_wia', '-friendly_kia', '-friendly_wia',
                 'date', 'title']
         verbose_name_plural = 'Diary entries'
+
+    def casualty_summary(self):
+        parts = []
+        for attr in ('civilian', 'host_nation', 'friendly', 'enemy'):
+            k = getattr(self, attr + '_kia')
+            w = getattr(self, attr + '_wia')
+            if k or w:
+                counts = []
+                if k:
+                    counts.append("%i killed" % k)
+                if w:
+                    counts.append("%i wounded" % w)
+                parts.append("%s: %s" % (attr.title().replace("_", " "), ", ".join(counts)))
+        return "; ".join(parts)
 
 class Phrase(models.Model):
     phrase = models.CharField(max_length=255, unique=True, db_index=True)

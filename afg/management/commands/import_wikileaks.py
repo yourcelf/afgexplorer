@@ -89,3 +89,7 @@ UPDATE afg_diaryentry SET summary_tsv=to_tsvector(summary);
 COMMIT;
         """)
 
+        # denormalize total_casualties
+        cusror.execute("""
+UPDATE afg_diaryentry SET total_casualties = civilian_kia + civilian_wia + friendly_kia + friendly_wia + host_nation_kia + host_nation_wia + enemy_kia + enemy_wia;
+""")

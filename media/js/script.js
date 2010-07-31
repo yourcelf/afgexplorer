@@ -1,5 +1,5 @@
 function linebreaks(str) {
-    return str.replace(/\n/g, "<br /><br />");
+    return str.replace(/\n/g, "<br />");
 }
 function fix_amps(str) {
     // Fix &amp;quot; nonsense.

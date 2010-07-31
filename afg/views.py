@@ -1,14 +1,17 @@
 import re
 import urllib
+import random
 from collections import defaultdict
 
 from django.http import Http404
 from django.utils.safestring import mark_safe
 from django.db import connection
 from django.core import paginator
+from django.core.urlresolvers import reverse
 from jimmypage.cache import cache_page
 
-from afg import models, utils
+from afg.models import DiaryEntry, Phrase
+from afg import utils
 
 @cache_page
 def about(request):
@@ -17,14 +20,14 @@ def about(request):
 @cache_page
 def show_entry(request, rid, template='afg/entry_page.html'):
     try:
-        entry = models.DiaryEntry.objects.get(report_key=rid)
-    except models.DiaryEntry.DoesNotExist:
+        entry = DiaryEntry.objects.get(report_key=rid)
+    except DiaryEntry.DoesNotExist:
         raise Http404
 
-    phrases = models.Phrase.objects.filter(entry_count__gt=1, 
+    phrases = Phrase.objects.filter(entry_count__gt=1, 
             entry_count__lt=10, entries=entry)
 # Equivalent query pre-de-normalization:
-#    phrases = list(models.Phrase.objects.raw("""
+#    phrases = list(Phrase.objects.raw("""
 #            SELECT sub.* FROM
 #                (SELECT p.id, p.phrase, COUNT(pe2.diaryentry_id) AS entry_count FROM 
 #                afg_phrase_entries pe2, afg_phrase p 
@@ -67,7 +70,7 @@ def entry_popup(request):
         raise Http404
 
     text_mapping = dict(zip(rids, texts))
-    entries_mapping = models.DiaryEntry.objects.in_bulk(rids)
+    entries_mapping = DiaryEntry.objects.in_bulk(rids)
     entries = []
     texts = []
     for k in entries_mapping.keys():
@@ -77,7 +80,11 @@ def entry_popup(request):
     return utils.render_request(request, "afg/entry_table.html", { 
         'entries': [(entry, _excerpt(entry.summary, [text])) for entry,text in zip(entries, texts)]
     })
-                
+
+def random_entry(request):
+    count = DiaryEntry.objects.count()
+    report_key = DiaryEntry.objects.all()[random.randint(0, count)].report_key
+    return utils.redirect_to("afg.show_entry", report_key)
 
 def _fix_amps(haystack):
     amps = re.compile("&amp;", re.I)
@@ -96,6 +103,7 @@ def _excerpt(haystack, needles):
         return haystack[0:i] + "..."
 
     haystack = re.sub("\s+", " ", haystack)
+    haystack = _fix_amps(haystack)
     words = [re.sub("[^-A-Z0-9 ]", "", needle.upper()) for needle in needles]
     locations = defaultdict(list)
     for word in words:
@@ -173,6 +181,7 @@ SEARCH_PARAMS = {
     'type': ('type', unicode),
     'region': ('region', unicode),
     'attack_on': ('attack_on', unicode),
+    'complex_attack': ('complex_attack', lambda e: "yes" if e else "no"),
     'unit_name': ('unit_name', unicode),
     'type_of_unit': ('type_of_unit', unicode),
     'reporting_unit': ('reporting_unit', unicode),
@@ -194,14 +203,16 @@ SEARCH_PARAMS = {
     'enemy_kia__lte': ('enemy_kia__lte', int),
     'enemy_detained__gte': ('enemy_detained__gte', int),
     'enemy_detained__lte': ('enemy_detained__lte', int),
+    'mgrs': ('mgrs', unicode),
     'originator_group': ('originator_group', unicode),
+    'updated_by_group': ('updated_by_group', unicode),
     'affiliation': ('affiliation', unicode),
     'dcolor': ('dcolor', unicode),
     'classification': ('classification', unicode),
 }
 
 @cache_page
-def search(request):
+def search(request, about=False):
     params = {}
     for key in request.GET:
         trans = SEARCH_PARAMS.get(key, None)
@@ -211,20 +222,31 @@ def search(request):
             except ValueError:
                 continue
 
+    # sorting
+    sort_by = request.GET.get('sort_by', 'date')
+    sort_dir = request.GET.get('sort_dir', 'asc')
     # special handling of full text search
     q = params.pop('q', None)
     if q:
-        qs = models.DiaryEntry.objects.extra(where=['summary_tsv @@ plainto_tsquery(%s)'], params=[q])
+        qs = DiaryEntry.objects.extra(where=['summary_tsv @@ plainto_tsquery(%s)'], params=[q])
     else:
-        qs = models.DiaryEntry.objects.all()
+        qs = DiaryEntry.objects.all()
     qs = qs.filter(**params)
+    direction_indicator = '-' if sort_dir == 'desc' else ''
+    if sort_by in ('date', 'total_casualties'):
+        qs = qs.order_by(direction_indicator + sort_by)
+
+    # Restore params now that we've finished filtering on the non-model elements
     if q:
         params['q'] = q
+    params['sort_by'] = sort_by
+    params['sort_dir'] = sort_dir
+
 
     p = paginator.Paginator(qs, 10)
     try:
         page = p.page(int(request.GET.get('p', 1)))
-    except (ValueError, InvalidPage, EmptyPage):
+    except (ValueError, paginator.InvalidPage, paginator.EmptyPage):
         page = p.page(p.num_pages)
 
     if q:
@@ -264,11 +286,9 @@ def search(request):
             'value': params.get(field, ''),
         }
 
-    min_max_choices = {}
+    min_max_choices = utils.OrderedDict()
     # Integer choices
-    for field in ('friendly_wia', 'host_nation_wia', 'civilian_wia', 
-            'enemy_wia', 'friendly_kia', 'host_nation_kia', 'civilian_kia', 
-            'friendly_kia', 'enemy_detained'):
+    for field in ('total_casualties', 'civilian_kia', 'civilian_wia', 'host_nation_kia', 'host_nation_wia', 'friendly_kia', 'friendly_wia', 'enemy_kia', 'enemy_wia', 'enemy_detained'):
         try:
             minimum = qs.order_by(field).values(field)[0][field]
             maximum = qs.order_by("-%s" % field).values(field)[0][field]
@@ -286,24 +306,48 @@ def search(request):
                 'max_value': params.get(field + '__lte', ''),
         }
 
+    search_url = reverse('afg.search')
+
+    # Links to remove constraints
     constraints = {}
-    for field, value in params.iteritems():
-        params2 = {}
-        params2.update(params)
-        params2.pop(field)
-        constraints[field] = {
-            'value': value,
-            'removelink': "?%s" % urllib.urlencode(params2),
-            'title': fix_constraint_name(field)
-        }
+    exclude = set(('sort_by', 'sort_dir'))
+    for field in params.keys():
+        if field not in exclude:
+            value = params.pop(field)
+            constraints[field] = {
+                'value': value,
+                'removelink': "%s?%s" % (search_url, urllib.urlencode(params)),
+                'title': fix_constraint_name(field)
+            }
+            params[field] = value
+
+    # Links to change sorting
+    sort = {}
+    for by in ('date', 'total_casualties'):
+        sort_by = params.pop('sort_by', 'date')
+        sort_dir = params.pop('sort_dir', 'asc')
+        params['sort_by'] = by
+        if sort_by == by:
+            if sort_dir == 'asc':
+                params['sort_dir'] = 'desc' 
+                sort[by + '_asc'] = True
+            else:
+                sort[by + '_desc'] = True
+        else:
+            params['sort_dir'] = sort_dir
+        sort[by] = "%s?%s" % (search_url, urllib.urlencode(params))
+        params['sort_by'] = sort_by
+        params['sort_dir'] = sort_dir
 
     return utils.render_request(request, "afg/search.html", {'page': page,
+        'about': about,
         'entries': entries,
         'params': request.GET,
         'choices': choices,
         'min_max_choices': min_max_choices,
-        'qstring': '?%s' % urllib.urlencode(params),
+        'qstring': '%s?%s' % (search_url, urllib.urlencode(params)),
         'constraints': constraints,
+        'sort': sort,
     })
 
 def fix_constraint_name(field):
@@ -314,4 +358,3 @@ def fix_constraint_name(field):
     field = field.replace('lte', ' - less than')
     field = field.replace('icontains', 'contains')
     return field[0].upper() + field[1:]
-
