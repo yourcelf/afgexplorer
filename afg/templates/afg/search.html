@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Search{% endblock %}
+{% block title %}{% if about %}Diary Dig{% else %}Search{% endif %}{% endblock %}
 {% block content %}
 
 <div class='sidebar'>
