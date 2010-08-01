@@ -8,7 +8,7 @@
         <li><a href='{% url afg.random_entry %}'>Random entry</a></li>
     </ul>
     <br />
-    <form method='get' action=''>
+    <form method='get' action='{% url afg.search %}'>
         <input type='text' value='{{ params.q }}' name='q' />
         <input type='submit' value='search' />
     {% for param, choice_opts in choices.items %}
