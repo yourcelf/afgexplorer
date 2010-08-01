@@ -298,13 +298,22 @@ table {
 * html .sidebar {
   overflow-x: hidden;
 }
-/* line 127, ././style.sass */
-.sidebar p.about {
-  text-align: center;
-  margin-bottom: 0.5em;
+
+/* line 128, ././style.sass */
+.about {
+  margin-top: 3em;
+  width: 649px;
+  display: inline;
+  float: left;
+  margin-right: 0;
+  width: 670px;
+}
+/* line 138, /var/lib/gems/1.8/gems/compass-0.10.2/frameworks/blueprint/stylesheets/./blueprint/_grid.scss */
+* html .about {
+  overflow-x: hidden;
 }
 
-/* line 131, ././style.sass */
+/* line 132, ././style.sass */
 .main {
   width: 649px;
   display: inline;
@@ -317,22 +326,22 @@ table {
   overflow-x: hidden;
 }
 
-/* line 137, ././style.sass */
+/* line 138, ././style.sass */
 .constraints {
   background-color: #eeeeee;
   padding: 1em;
 }
-/* line 140, ././style.sass */
+/* line 141, ././style.sass */
 .constraints .constraint {
   background-color: #ffaa33;
   padding: 0.2em;
   margin-right: 1em;
 }
-/* line 144, ././style.sass */
+/* line 145, ././style.sass */
 .constraints .sort {
   float: right;
 }
-/* line 146, ././style.sass */
+/* line 147, ././style.sass */
 .constraints .sort a.sortdir, .constraints .sort a.sortdir:visited {
   text-decoration: none;
 }
