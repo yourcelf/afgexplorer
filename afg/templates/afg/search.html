@@ -4,10 +4,6 @@
 
 <div class='sidebar'>
     {% include "afg/_logo.html" %}
-    <ul>
-        <li><a href='{% url afg.random_entry %}'>Random entry</a></li>
-    </ul>
-    <br />
     <form method='get' action='{% url afg.search %}'>
         <input type='text' value='{{ params.q }}' name='q' />
         <input type='submit' value='search' />
@@ -37,6 +33,11 @@
         
     {% endfor %}
     </form>
+    <hr>
+    <ul>
+        <li><a href='{% url afg.random_entry %}'>Random entry</a></li>
+    </ul>
+    <br />
 </div>
 <div class='results'>
     <div class='constraints'>
