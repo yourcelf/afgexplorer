@@ -5,7 +5,7 @@ from afg import utils
 rid = "(?P<rid>[-A-Za-z0-9]+)"
 
 urlpatterns = patterns('afg.views',
-    url(r'about/$', lambda r: utils.redirect_to('/')),
+    url(r'about/$', lambda r: utils.redirect_to('afg.about')),
     url(r'entry_popup/$', 'entry_popup', name='afg.entry_popup'),
     url(r'search/$', 'search', name='afg.search'),
     url(r'random/$', 'random_entry', name='afg.random_entry'),
