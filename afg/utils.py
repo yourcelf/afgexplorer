@@ -1,7 +1,13 @@
+import json
+
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.template import RequestContext
 from django.shortcuts import render_to_response
+
+def render_json(request, obj):
+    #return HttpResponse(json.dumps(obj, indent=4)) # for debugging
+    return HttpResponse(json.dumps(obj), content_type="application/json")
 
 def render_request(request, template, context=None):
     return render_to_response(template, context or {},

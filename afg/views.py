@@ -18,11 +18,14 @@ def about(request):
     return utils.render_request(request, "about.html")
 
 @cache_page
-def show_entry(request, rid, template='afg/entry_page.html'):
+def show_entry(request, rid, template='afg/entry_page.html', api=False):
     try:
         entry = DiaryEntry.objects.get(report_key=rid)
     except DiaryEntry.DoesNotExist:
-        raise Http404
+        try:
+            entry = DiaryEntry.objects.get(id=int(rid))
+        except (ValueError, DiaryEntry.DoesNotExist):
+            raise Http404
 
     phrases = Phrase.objects.filter(entry_count__gt=1, 
             entry_count__lt=10, entries=entry)
@@ -53,6 +56,15 @@ def show_entry(request, rid, template='afg/entry_page.html'):
             dest_ids[int(row[0])].append(row[1])
 
     phrase_entries = [(phrase, dest_ids[phrase.id]) for phrase in phrases]
+
+    if api:
+        return utils.render_json(request, {
+                'entry': entry.to_dict(),
+                'phrase_entries': [{
+                        'phrase': p.phrase, 
+                        'entry_ids': ids,
+                     } for p, ids in phrase_entries],
+            })
 
     return utils.render_request(request, template, {
         'entry': entry,
@@ -169,8 +181,8 @@ def _excerpt(haystack, needles):
 
 
 @cache_page
-def index(request):
-    return utils.render_request(request, "afg/index.html")
+def api(request):
+    return utils.render_request(request, "afg/api.html")
 
 SEARCH_PARAMS = {
     'q': ('q', unicode),
@@ -212,7 +224,7 @@ SEARCH_PARAMS = {
 }
 
 @cache_page
-def search(request, about=False):
+def search(request, about=False, api=False):
     params = {}
     for key in request.GET:
         trans = SEARCH_PARAMS.get(key, None)
@@ -338,6 +350,40 @@ def search(request, about=False):
         sort[by] = "%s?%s" % (search_url, urllib.urlencode(params))
         params['sort_by'] = sort_by
         params['sort_dir'] = sort_dir
+
+    if api:
+        remapped_choices = {}
+        for choice, opts in choices.iteritems():
+            remapped_choices[choice] = {
+                'value': opts['value'],
+                'title': opts['title'],
+                'choices': []
+            }
+            for disp, val in opts['choices']:
+                if disp or val:
+                    remapped_choices[choice]['choices'].append({
+                            'value': val,
+                            'display': disp,
+                    })
+
+        return utils.render_json(request, {
+            'pageination': {
+                'p': page.number,
+                'num_pages': page.paginator.num_pages,
+                'num_results': page.paginator.count,
+            },
+            'entries': [{
+                    'report_key': e.report_key,
+                    'excerpt': x
+                 } for (e,x) in entries],
+            'choices': remapped_choices,
+            'min_max_choices': min_max_choices,
+            'sort': {
+                'sort_by': params['sort_by'],
+                'sort_dir': params['sort_dir'],
+            },
+            'params': params,
+        })
 
     return utils.render_request(request, "afg/search.html", {'page': page,
         'about': about,

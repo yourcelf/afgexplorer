@@ -43,6 +43,12 @@ class DiaryEntry(models.Model):
     def __unicode__(self):
         return self.title
 
+    def to_dict(self):
+        obj = {}
+        for field in self._meta.fields:
+            obj[field.name] = unicode(getattr(self, field.name))
+        return obj
+
     class Meta:
         ordering = ['-civilian_kia', '-civilian_wia', '-host_nation_kia',
                 '-host_nation_wia', '-friendly_kia', '-friendly_wia',
