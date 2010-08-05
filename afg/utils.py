@@ -7,6 +7,12 @@ from django.shortcuts import render_to_response
 
 def render_json(request, obj):
     #return HttpResponse(json.dumps(obj, indent=4)) # for debugging
+    dumped = json.dumps(obj)
+    callback = request.GET.get('callback', None)
+    if callback:
+        return HttpResponse("%s(%s);" % (callback, dumped), 
+                content_type="text/javascript")
+
     return HttpResponse(json.dumps(obj), content_type="application/json")
 
 def render_request(request, template, context=None):
