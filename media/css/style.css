@@ -145,64 +145,69 @@ table {
   border-collapse: collapse;
 }
 
-/* line 49, ././style.sass */
+/* line 48, ././style.sass */
+acronym {
+  color: #880000;
+}
+
+/* line 52, ././style.sass */
 .links {
   border-bottom: 1px solid #eeffee;
   cursor: pointer;
   color: #003300;
 }
 
-/* line 54, ././style.sass */
+/* line 57, ././style.sass */
 .numlinks1 {
   border-bottom: 1px solid #ddffdd;
 }
 
-/* line 56, ././style.sass */
+/* line 59, ././style.sass */
 .numlinks2 {
   border-bottom: 2px solid #ddffdd;
 }
 
-/* line 58, ././style.sass */
+/* line 61, ././style.sass */
 .numlinks3 {
   border-bottom: 3px solid #ddffdd;
 }
 
-/* line 60, ././style.sass */
+/* line 63, ././style.sass */
 .numlinks4 {
   border-bottom: 4px solid #ddffdd;
 }
 
-/* line 62, ././style.sass */
+/* line 65, ././style.sass */
 .numlinks5 {
   border-bottom: 5px solid #ddffdd;
 }
 
-/* line 64, ././style.sass */
+/* line 67, ././style.sass */
 .numlinks6 {
   border-bottom: 6px solid #ddffdd;
 }
 
-/* line 66, ././style.sass */
+/* line 69, ././style.sass */
 .numlinks7 {
   border-bottom: 7px solid #ddffdd;
 }
 
-/* line 68, ././style.sass */
+/* line 71, ././style.sass */
 .numlinks8 {
   border-bottom: 8px solid #ddffdd;
 }
 
-/* line 70, ././style.sass */
+/* line 73, ././style.sass */
 .numlinks9 {
   border-bottom: 9px solid #ddffdd;
 }
 
-/* line 72, ././style.sass */
+/* line 75, ././style.sass */
 .numlinks10 {
   border-bottom: 10px solid #ddffdd;
 }
 
-/* line 75, ././style.sass */
+/* line 78, ././style.sass */
 .popup {
   max-width: 80%;
   position: absolute;
@@ -211,7 +216,7 @@ table {
   padding-top: 2em;
   background-color: white;
 }
-/* line 82, ././style.sass */
+/* line 85, ././style.sass */
 .popup .close {
   position: absolute;
   right: 0.2em;
@@ -220,64 +225,64 @@ table {
   text-decoration: underline;
   cursor: pointer;
 }
-/* line 89, ././style.sass */
+/* line 92, ././style.sass */
 .popup p {
   margin: 0;
 }
 
-/* line 92, ././style.sass */
+/* line 95, ././style.sass */
 .logo {
   text-align: center;
 }
-/* line 94, ././style.sass */
+/* line 97, ././style.sass */
 .logo a, .logo a:link, .logo a:visited {
   color: #000099;
   text-decoration: none;
 }
-/* line 97, ././style.sass */
+/* line 100, ././style.sass */
 .logo h1 {
   font-size: 24pt;
 }
-/* line 99, ././style.sass */
+/* line 102, ././style.sass */
 .logo h2 {
   font-size: 12pt;
 }
 
-/* line 102, ././style.sass */
+/* line 105, ././style.sass */
 .date {
   color: #555555;
 }
 
-/* line 104, ././style.sass */
+/* line 107, ././style.sass */
 .category, .region, .casualties {
   color: #550000;
 }
 
-/* line 107, ././style.sass */
+/* line 110, ././style.sass */
 .summary {
   line-height: 2em;
 }
 
-/* line 110, ././style.sass */
+/* line 113, ././style.sass */
 .metadata {
   font-size: smaller;
 }
-/* line 112, ././style.sass */
+/* line 115, ././style.sass */
 .metadata th {
   font-weight: bold;
 }
-/* line 114, ././style.sass */
+/* line 117, ././style.sass */
 .metadata th, .metadata td {
   text-align: right;
   border: 1px solid #dddddd;
   padding: 0.5em;
 }
-/* line 118, ././style.sass */
+/* line 121, ././style.sass */
 .metadata td + td {
   text-align: center;
 }
 
-/* line 121, ././style.sass */
+/* line 124, ././style.sass */
 .entry {
   width: 950px;
   margin: 0 auto;
@@ -289,7 +294,7 @@ table {
   display: block;
 }
 
-/* line 124, ././style.sass */
+/* line 127, ././style.sass */
 .sidebar {
   float: left;
   margin-right: 1em;
@@ -304,7 +309,7 @@ table {
   overflow-x: hidden;
 }
 
-/* line 130, ././style.sass */
+/* line 133, ././style.sass */
 .about {
   margin-top: 3em;
   width: 649px;
@@ -318,7 +323,7 @@ table {
   overflow-x: hidden;
 }
 
-/* line 134, ././style.sass */
+/* line 137, ././style.sass */
 .main {
   width: 649px;
   display: inline;
@@ -331,22 +336,22 @@ table {
   overflow-x: hidden;
 }
 
-/* line 140, ././style.sass */
+/* line 143, ././style.sass */
 .constraints {
   background-color: #eeeeee;
   padding: 1em;
 }
-/* line 143, ././style.sass */
+/* line 146, ././style.sass */
 .constraints .constraint {
   background-color: #ffaa33;
   padding: 0.2em;
   margin-right: 1em;
 }
-/* line 147, ././style.sass */
+/* line 150, ././style.sass */
 .constraints .sort {
   float: right;
 }
-/* line 149, ././style.sass */
+/* line 152, ././style.sass */
 .constraints .sort a.sortdir, .constraints .sort a.sortdir:visited {
   text-decoration: none;
 }

@@ -171,6 +171,11 @@
 <div class='main'>
     <h1>{{ entry.title }}</h1>
     {{ entry.date }}
+    <noscript>
+        <h2>Javascript required for full view</h2>
+        <h3>Limited script-free view:</h3>
+        {{ entry.summary }}
+    </noscript>
     {% if user.is_authenticated %}
     <a href='/admin/afg/diaryentry/{{ entry.pk }}'>admin</a>
     {% endif %}
