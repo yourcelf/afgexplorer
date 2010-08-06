@@ -167,6 +167,7 @@ var ACRONYMS = [
     [/\b(AH)\b/g, "Attack helicopter"],
     [/\b(AIHRC)\b/g, "Afghan Independent Human Right Commission"],
     [/\b(AK-47)\b/g, "Assault rifle"],
+    [/\b(AMF)\b/g, "Afghan Military Forces"],
     [/\b(ANA)\b/g, "Afghan National Army"],
     [/\b(ANAP)\b/g, "Afghan National Auxiliary Police"],
     [/\b(ANBP)\b/g, "Afghan National Border Police"],
@@ -177,7 +178,7 @@ var ACRONYMS = [
     [/\b(ARSIC)\b/g, "Afghan Regional Security Integrated Command"],
     [/\b(ASG)\b/g, "Area Support Group"],
     [/\b(ASV)\b/g, "Armoured Security Vehicle"],
-    [/\b(ATT)\b/g, "At this time"],
+    [/\b(ATT)\b/gi, "At this time"],
     [/\b(ATTK)\b/g, "Attack"],
     [/\b(AUP)\b/g, "Afghan Uniform Police"],
     [/\b(B-HUTS)\b/g, "Semi-permanent wooden structure (used in place of tents)"],
@@ -318,9 +319,9 @@ var ACRONYMS = [
     [/\b(KAF)\b/g, "Kandahar Air Field"],
     [/\b(KAIA)\b/g, "Kabul international airport"],
     [/\b(KDZ)\b/g, "Kunduz"],
-    [/\b(KIA)\b/g, "Killed in action"],
+    [/\b(KIA)\b/g, "Killed in Action"],
     [/\b(KJI)\b/g, "Kajaki"],
-    [/\b(KMTC)\b/g, "Kabul military training cetnre"],
+    [/\b(KMTC)\b/g, "Kabul Military Training Cetnre"],
     [/\b(KPRT)\b/g, "Kandahar Provincial Reconstruction Team"],
     [/\b(L:)\b/g, "Location (in relation to S, A, L, T)"],
     [/\b(LEP)\b/g, "Law Enforcement Professionals"],
@@ -330,7 +331,7 @@ var ACRONYMS = [
     [/\b(Line 4)\b/g, "Special equipment required"],
     [/\b(Litter)\b/g, "Medical Stretcher"],
     [/\b(LKG)\b/g, "Lashkar Ghar"],
-    [/\b(LN)\b/g, "Local National"],
+    [/\b(L\/?N)\b/g, "Local National"],
     [/\b(LNs)\b/gi, "Local Nationals"],
     [/\b(LNO)\b/g, "Liaison Officer"],
     [/\b(LTC)\b/g, "Lieutenant Colonel"],
@@ -364,7 +365,7 @@ var ACRONYMS = [
     [/\b(NC)\b/g, "non-combatant"],
     [/\b(NCO)\b/g, "Non-commissioned officer"],
     [/\b(NDS)\b/g, "Afghan intelligence [national directorate of security]"],
-    [/\b(NFI)\b/g, "Not Further Identified"],
+    [/\b(NFI)\b/g, "No Further Information"],
     [/\b(NFTR)\b/g, "Nothing Further to Report"],
     [/\b(NMC)\b/g, "Non mission-capable"],
     [/\b(NOFORN)\b/g, "No foreigners [secrecy classification]"],
@@ -440,6 +441,7 @@ var ACRONYMS = [
     [/\b(S-2)\b/g, "Intelligence staff officer"],
     [/\b(S-5)\b/g, "Staff member responsible for civil-military operations"],
     [/\b(SALUTE)\b/g, "Size/Activity/Location/Time/Unit/Equipment"],
+    [/\b(SALUTER)\b/g, "Size/Activity/Location/Time/Unit/Equipment/Result"],
     [/\b(S[-:])/g, "Size "],
     [/\b(A[-:])/g, "Activity "],
     [/\b(L[-:])/g, "Location "],
@@ -505,7 +507,7 @@ var ACRONYMS = [
     [/\b(w\/d)\b/g, "wheels down"],
     [/\b(w\/u)\b/g, "wheels up"],
     [/\b(White Eagle)\b/g, "Polish Task Force (White Eagle)"],
-    [/\b(WIA)\b/g, "Wounded in action"]
+    [/\b(WIA)\b/g, "Wounded in Action"]
 ];
 function acronyms(string) {
     for (var i = 0; i < ACRONYMS.length; i++) {
