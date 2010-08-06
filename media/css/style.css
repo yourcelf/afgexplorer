@@ -146,7 +146,7 @@ table {
 }
 
 /* line 48, ././style.sass */
-acronym {
+acronym, .toggle-acronyms {
   color: #880000;
 }
 

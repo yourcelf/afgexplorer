@@ -77,8 +77,18 @@ function displayText(tokens, div, popup_url, loading_text) {
         var content = $(document.createElement("div")).attr("class", "content").html(
             loading_text
         );
-        // get inner text
+        
+        // get inner text.  Must un-expand acronyms first.
+        var acronymChecked = $('#toggleAcronyms').is(":checked");
+        if (acronymChecked) {
+            toggleAcronyms(false);
+        }
         var clicked = $(this).text().toUpperCase().replace(/\s+$/g, '').replace(/^\s+/g, '');
+        if (acronymChecked) {
+            toggleAcronyms(true);
+        }
+
+        // Create popup div.
         var pop = $(document.createElement("div")).attr("class", "popup").append(
                 $(document.createElement("a")).attr("class", "close")
                     .html("close")
@@ -104,6 +114,8 @@ function displayText(tokens, div, popup_url, loading_text) {
                 ids.push(parseInt(match[1]));
             }
         });
+        
+        // Find text to highlight.
         var texts = [];
         for (var i = 0; i < ids.length; i++) {
             var bestText = "";
@@ -116,6 +128,7 @@ function displayText(tokens, div, popup_url, loading_text) {
             }
             texts.push(escape(bestText));
         }
+
         $.ajax({
             type: "GET",
             url: popup_url,
@@ -161,51 +174,51 @@ var ACRONYMS = [
     [/\b(ANSF)\b/g, "Afghan National Security Forces"],
     [/\b(AO)\b/g, "Area of operation"],
     [/\b(AQ)\b/g, "Al Qaida"],
-    [/\b(ARSIC)\b/g, "Afghan regional security integrated command"],
+    [/\b(ARSIC)\b/g, "Afghan Regional Security Integrated Command"],
     [/\b(ASG)\b/g, "Area Support Group"],
-    [/\b(ASV)\b/g, "armoured security vehicle"],
+    [/\b(ASV)\b/g, "Armoured Security Vehicle"],
     [/\b(ATT)\b/g, "At this time"],
     [/\b(ATTK)\b/g, "Attack"],
-    [/\b(AUP)\b/g, "Afghan uniform police"],
-    [/\b(B-HUTS)\b/g, "Semi-permanent wooden structures used in place of tents"],
+    [/\b(AUP)\b/g, "Afghan Uniform Police"],
+    [/\b(B-HUTS)\b/g, "Semi-permanent wooden structure (used in place of tents)"],
     [/\b(BAF)\b/g, "Bagram Air Field"],
     [/\b(BCT)\b/g, "Brigade combat team (US)"],
-    [/\b(BDA)\b/g, "Battle damage assessment"],
+    [/\b(BDA)\b/g, "Battle Damage Assessment"],
     [/\b(BDE)\b/g, "Brigade"],
     [/\b(Beaten zone)\b/g, "Area where spread of rounds fired"],
-    [/\b(BFT)\b/g, "Blue Force Tracking: identifying friendly forces in area"],
+    [/\b(BFT)\b/g, "Blue Force Tracking [identifying friendly forces in area]"],
     [/\b(BG)\b/g, "Brigadier General"],
     [/\b(Blue forces)\b/g, "Nato/ISAF forces"],
     [/\b(Blue on Blue)\b/g, "Friendly fire"],
     [/\b(BN)\b/g, "Battalion"],
     [/\b(BP)\b/g, "Blood Pressure"],
-    [/\b(BPT)\b/g, "Be [ing] prepared to"],
+    [/\b(BPT)\b/g, "Be[ing] prepared to"],
     [/\b(BRF)\b/g, "Brigade Reconnaissance Force"],
     [/\b(BSN)\b/g, "(Camp) Bastion"],
     [/\b(BSSM)\b/g, "Border Security Subcommittee Meeting"],
-    [/\b(BTG)\b/g, "Basic target graphic"],
-    [/\b(BTIF)\b/g, "Bagram theatre internment facility"],
+    [/\b(BTG)\b/g, "Basic Target Graphic"],
+    [/\b(BTIF)\b/g, "Bagram Theatre Internment Facility"],
     [/\b(BTL)\b/g, "Battalion"],
     [/\b(buzz saw)\b/g, "Signalling method by waving light stick in circle"],
-    [/\b(C\/\/NF)\b/g, "Confidential, no foreign nationals"],
-    [/\b(C\/S)\b/g, "Call sign"],
+    [/\b(C\/\/NF)\b/g, "Confidential, No Foreign Nationals"],
+    [/\b(C\/S)\b/g, "Call Sign"],
     [/\b(CAN)\b/g, "Canadian"],
-    [/\b(CAS)\b/g, "Close air support"],
-    [/\b(CAT C)\b/g, "Category C patient - priority"],
-    [/\b(CCA)\b/g, "carrier-controlled approach"],
-    [/\b(CCIR)\b/g, "commander's critical information requirements"],
+    [/\b(CAS)\b/g, "Close Air Support"],
+    [/\b(CAT C)\b/g, "Category C patient (priority)"],
+    [/\b(CCA)\b/g, "Carrier-Controlled Approach"],
+    [/\b(CCIR)\b/g, "Commander's Critical Information Requirements"],
     [/\b(CD)\b/g, "Command"],
     [/\b(CDN)\b/g, "Canadian"],
     [/\b(CDR)\b/g, "Commander"],
     [/\b(CF)\b/g, "Coalition Forces"],
     [/\b(CG)\b/g, "Coldstream Guards"],
     [/\b(CGBG)\b/g, "Coldstream Guards Battle Group"],
-    [/\b(cgbg 1 coy)\b/g, "1 company, Coldstream Guards battle group"],
+    [/\b(cgbg 1 coy)\b/g, "1 Company, Coldstream Guards battle group"],
     [/\b(CHOPS)\b/g, "Chief of Operations"],
     [/\b(CIV)\b/g, "Civilian"],
     [/\b(CIVCAS)\b/g, "Civilian casualties"],
-    [/\b(CJ2)\b/g, "US intelligence and security command, afghanistan"],
-    [/\b(CJ3)\b/g, "Joint special ops"],
+    [/\b(CJ2)\b/g, "US intelligence and Security Command, Afghanistan"],
+    [/\b(CJ3)\b/g, "Joint Special Ops"],
     [/\b(CJSOTF)/g, "Combined Joint Special Operations Task Force"],
     [/\b(CJTF)/g, "Combined Joint Task Force"],
     [/\b(CJTF-82)\b/g, "Combined Joint Task Force-82: HQ of US Forces in ISAF and Regional Command East, March 2007-April 2008"],
@@ -214,36 +227,36 @@ var ACRONYMS = [
     [/\b(CoP)\b/g, "Chief of Police"],
     [/\b(COP)\b/g, "Combat outpost"],
     [/\b(Coy)\b/gi, "Company"],
-    [/\b(CP)\b/g, "Check point"],
+    [/\b(CP)\b/g, "Check Point"],
     [/\b(cpt)\b/g, "Captain"],
-    [/\b(Csh)\b/gi, "Combat support hospital"],
+    [/\b(Csh)\b/gi, "Combat Support Hospital"],
     [/\b(CTC)\b/g, "? Counterterrorist Center"],
     [/\b(CWIED)\b/g, "Command Wire Improvised Explosive Device"],
     [/\b(DBC)\b/g, "Database Code"],
     [/\b(DC)\b/g, "District Centre"],
-    [/\b(DF)\b/g, "Direct fire"],
-    [/\b(DOI)\b/g, "Date of incident"],
+    [/\b(DF)\b/g, "Direct Fire"],
+    [/\b(DOI)\b/g, "Date of Incident"],
     [/\b(DoS)\b/g, "Department of State"],
-    [/\b(DSHKA)\b/g, "Soviet-origin heavy machine gun"],
+    [/\b(DSHKA)\b/g, "Soviet-origin Heavy Machine Gun"],
     [/\b(ECP)\b/g, "Entry Control Point"],
-    [/\b(EWIA)\b/g, "Enemy wounded in action"],
-    [/\b(EKIA)\b/g, "Enemy killed in action"],
+    [/\b(EWIA)\b/g, "Enemy Wounded in Action"],
+    [/\b(EKIA)\b/g, "Enemy Killed in Action"],
     //[/\b(Element)\b/gi, "task force part"],
     [/\b(ENG BDE)\b/g, "Engineer Brigade"],
     [/\b(EOC)\b/g, "Emergency Operation Centre"],
     [/\b(EOD)\b/g, "Explosive Ordnance Disposal [bomb defuser]"],
     [/\b(eof)\b/g, "Escalation of Force [also 'exchange of fire']"],
-    [/\b(ETT)\b/g, "embedded training team"],
+    [/\b(ETT)\b/g, "Embedded Training Team"],
     [/\b(evac)\b/g, "Evacuation"],
     [/\b(EVACD)\b/g, "Evacuated"],
-    [/\b(F-15)\b/g, "Fighter/bomber"],
+    [/\b(F-15)\b/g, "F-15 Fighter/bomber"],
     [/\b(FB)\b/g, "Forward Base"],
     [/\b(FF)\b/g, "Friendly Forces"],
     [/\b(FFIR)\b/g, "Friendly Forces Information Requirement"],
     [/\b(FIR)\b/g, "First Impressions Report"],
-    [/\b(FO)\b/g, "Forward observer"],
+    [/\b(FO)\b/g, "Forward Observer"],
     [/\b(FOB)\b/g, "Forward Operating Base"],
-    [/\b(FP)\b/g, "Firing point"],
+    [/\b(FP)\b/g, "Firing Point"],
     [/\b(fps)\b/g, "Facility protection service"],
     [/\b(FRA BG)\b/g, "French battle group"],
     [/\b(FSB)\b/g, "Forward Support Base"],
@@ -261,18 +274,18 @@ var ACRONYMS = [
     [/\b(GT R2RR)\b/g, "Canadian troops: tactical group:2nd bn 22nd royal regiment"],
     [/\b(helos)\b/g, "Helicopters"],
     [/\b(HHB)\b/g, "Headquarters and Headquarters Battalion"],
-    [/\b(HIMARS)\b/g, "latest GPS-guided multiple rocket system, mounted on v. mobile truck [carries GMLRS qv]"],
+    [/\b(HIMARS)\b/g, "GPS-guided multiple rocket system, mounted on v. mobile truck [carries GMLRS qv]"],
     [/\b(HLZ)\b/g, "helicopter landing zone"],
     [/\b(HMG)\b/g, "UK government (HM Government)"],
     [/\b(HMLA-169)\b/g, "US Marines light attack helicopter sqadron"],
-    [/\b(HRT)\b/g, "hostage rescue team"],
+    [/\b(HRT)\b/g, "Hostage Rescue Team"],
     [/\b(HVI)\b/g, "High-value Individual"],
     [/\b(HWY)\b/g, "Highway"],
+    [/\b(IAW EOF SOP)\b/g, "In Accordance With Escalation of Force Standard Operating Procedure"],
     [/\b(IAW)\b/g, "In accordance with"],
-    [/\b(IAW EOF SOP)\b/g, "in accordance with escalation of force standard operating procedure"],
     [/\b(ICOM)\b/g, "Radio"],
-    [/\b(IDF)\b/g, "indirect fire"],
-    [/\b(IED)\b/g, "Improvised explosive device"],
+    [/\b(IDF)\b/g, "Indirect Fire"],
+    [/\b(IED)\b/g, "Improvised Explosive Device"],
     [/\b(Illum)\b/g, "Illumination mortar, fired to provide light"],
     [/\b(INFIL)\b/g, "Infiltrate"],
     [/\b(INS)\b/g, "Insurgents"],
@@ -297,8 +310,8 @@ var ACRONYMS = [
     [/\b(JDCC)\b/g, "Joint District Coordination Center"],
     [/\b(JDOC)\b/g, "Joint Defense Operations Center"],
     [/\b(JEL)\b/g, "Joint Effects List [hit list]"],
-    [/\b(Jingle trucks)\b/g, "Brightly decorated trucks covered in bells common across central Asia"],
-    [/\b(JOC)\b/g, "joint ops centre"],
+    [/\b(Jingle trucks)\b/g, "Brightly decorated trucks covered in bells [common across central Asia]"],
+    [/\b(JOC)\b/g, "Joint Ops Centre"],
     [/\b(JPEL)\b/g, "Joint Prioritised Effects List [hit list]"],
     [/\b(JTAC)\b/g, "Joint terminal air controller"],
     [/\b(JUGROOM)\b/g, "Fort, Garmsir, Afghanistan"],
@@ -315,10 +328,10 @@ var ACRONYMS = [
     [/\b(Line 2)\b/g, "Radio frequency, call sign, and suffix."],
     [/\b(Line 3)\b/g, "Number of patients by precedence: A to E with A being most urgent"],
     [/\b(Line 4)\b/g, "Special equipment required"],
-    [/\b(Litter)\b/g, "Stretcher used by medics"],
+    [/\b(Litter)\b/g, "Medical Stretcher"],
     [/\b(LKG)\b/g, "Lashkar Ghar"],
-    [/\b(LN)\b/g, "Local national"],
-    [/\b(LNs)\b/gi, "Local nationals"],
+    [/\b(LN)\b/g, "Local National"],
+    [/\b(LNs)\b/gi, "Local Nationals"],
     [/\b(LNO)\b/g, "Liaison Officer"],
     [/\b(LTC)\b/g, "Lieutenant Colonel"],
     [/\b(Luna)\b/g, "German drone"],
@@ -352,7 +365,7 @@ var ACRONYMS = [
     [/\b(NCO)\b/g, "Non-commissioned officer"],
     [/\b(NDS)\b/g, "Afghan intelligence [national directorate of security]"],
     [/\b(NFI)\b/g, "Not Further Identified"],
-    [/\b(NFTR)\b/g, "Nothing further to report"],
+    [/\b(NFTR)\b/g, "Nothing Further to Report"],
     [/\b(NMC)\b/g, "Non mission-capable"],
     [/\b(NOFORN)\b/g, "No foreigners [secrecy classification]"],
     [/\b(NSTR)\b/g, "Nothing significant to report"],
@@ -379,18 +392,18 @@ var ACRONYMS = [
     [/\b(PEF)\b/g, "poppy eradication force [afghan police]"],
     [/\b(PEN)\b/g, "Penich (outpost)"],
     [/\b(PHQ)\b/g, "Police headquarters (in reference to ANP)"],
-    [/\b(PID)\b/g, "positive i.d."],
+    [/\b(PID)\b/g, "Positive I.D."],
     [/\b(PKM)\b/g, "Russian-made machine gun"],
     [/\b(PL)\b/g, "Platoon"],
     [/\b(PLT)\b/g, "Platoon"],
     [/\b(PLT SJT)\b/g, "Platoon Seargant"],
     [/\b(PMT)\b/g, "Police Mentor Team"],
     [/\b(PoA)\b/g, "President of Afghanistan"],
-    [/\b(poc)\b/g, "point of contact"],
-    [/\b(POI)\b/g, "point of impact"],
-    [/\b(POO)\b/g, "Point of origin"],
-    [/\b(PRED)\b/g, "Predator drone"],
-    [/\b(PRO COY)\b/g, "protection company"],
+    [/\b(poc)\b/g, "Point of Contact"],
+    [/\b(POI)\b/g, "Point of Impact"],
+    [/\b(POO)\b/g, "Point of Origin"],
+    [/\b(PRED)\b/g, "Predator Drone"],
+    [/\b(PRO COY)\b/g, "Protection Company"],
     [/\b(PRT)\b/g, "Provincial Reconstruction Team"],
     [/\b(PRT CDR)\b/g, "Provincial Reconstruction Team Commander"],
     [/\b(PSO)\b/g, "Post Security Officer"],
@@ -435,8 +448,8 @@ var ACRONYMS = [
     [/\b(E[-:])/g, "Equipment "],
     [/\b(R[-:])/g, "Result "],
     [/\b(S\/\/REL)\b/g, "Secret or Selective release?"],
-    [/\b(SAF)\b/g, "Small ams fire/Surface to air fire"],
-    [/\b(Safire)\b/g, "Small ams fire/Surface to air fire"],
+    [/\b(SAF)\b/g, "Small arms fire/Surface to air fire"],
+    [/\b(Safire)\b/g, "Small arms fire/Surface to air fire"],
     [/\b(SAW)\b/g, "Squad Automatic Weapon [ machine gun]"],
     [/\b(SC-26)\b/g, "Scorpion 26 - US special forces unit in Helmand"],
     [/\b(SCIDA)\b/g, "Site Configuration and Installation Design Authority?"],
@@ -453,30 +466,28 @@ var ACRONYMS = [
     [/\b(SOTF)\b/g, "Special Operations Task Force"],
     [/\b(SOTG)\b/g, "Special ops taskgroup"],
     [/\b(SPC)\b/g, "Specialist"],
-    [/\b(SQD)\b/g, "Squadron"],
-    [/\b(sqn)\b/g, "Squadron"],
+    [/\b(SQ[DN])\b/gi, "Squadron"],
     [/\b(Squirter)\b/g, "Someone running for cover"],
-    [/\b(SSE)\b/g, "Sensitive site exploitation"],
-    [/\b(SVBIED)\b/g, "suicide vehicle-borne IED"],
-    [/\b(SWO)\b/g, "Surface warfare officer"],
-    [/\b(SWT)\b/g, "Scout weapons team"],
-    [/\b(T:)\b/g, "Time (in relation to S, A, L, T)"],
+    [/\b(SSE)\b/g, "Sensitive Site Exploitation"],
+    [/\b(SVBIED)\b/g, "Suicide Vehicle-Borne Improvised Explosive Device"],
+    [/\b(SWO)\b/g, "Surface Warfare Officer"],
+    [/\b(SWT)\b/g, "Scout Weapons Team"],
     [/\b(TB)\b/g, "Taliban"],
     [/\b(TBC)\b/g, "To be confirmed"],
     [/\b(TBD)\b/g, "To be decided"],
     [/\b(TCP)\b/g, "Traffic control point"],
     [/\b(TERP)\b/g, "Interpreter"],
     [/\b(TF)\b/g, "Task force"],
-    [/\b(TF373)\b/g, "task force 373 [special ops]"],
+    [/\b(TF373)\b/g, "Task Force 373 [special ops]"],
     [/\b(TFK)\b/g, "Task Force Kandahar"],
     [/\b(TG)\b/g, "Tactical Group"],
     [/\b(TG AREs)\b/g, "Tactical group Ares"],
-    [/\b(Thready)\b/g, "Pulse that is very fine and scarcely perceptible."],
-    [/\b(TIC)\b/g, "Troops in contact"],
-    [/\b(Toc)\b/g, "tactical op center"],
-    [/\b(TTPs)\b/g, "tactics, techniques, and procedures"],
-    [/\b(UAH)\b/g, "Up-armoured Humvee"],
-    [/\b(UAV)\b/g, "Unmanned aerial vehicle [drone]"],
+    [/\b(Thready)\b/g, "Very fine and scarcely perceptible pulse"],
+    [/\b(TIC)\b/g, "Troops in Contact"],
+    [/\b(Toc)\b/gi, "Tactical Ops Center"],
+    [/\b(TTPs)\b/g, "Tactics, Techniques, and Procedures"],
+    [/\b(UAH)\b/g, "Up-Armoured Humvee"],
+    [/\b(UAV)\b/g, "Unmanned Aerial Vehicle [drone]"],
     [/\b(UH-1N)\b/g, "US Twin Huey transport/communications helicopter"],
     [/\b(UH-60)\b/g, "Black Hawk helicopter"],
     [/\b(UNAMA)\b/g, "United Nations Assistance Mission in Afghanistan"],
@@ -490,10 +501,10 @@ var ACRONYMS = [
     [/\b(vitals)\b/g, "Vital signs"],
     [/\b(VP)\b/g, "Vulnerable point"],
     [/\b(VPB)\b/g, "Vehicle patrol base"],
-    [/\b(VSA)\b/g, "vital signs absent [i.e. dead]"],
+    [/\b(VSA)\b/g, "Vital Signs Absent [i.e. dead]"],
     [/\b(w\/d)\b/g, "wheels down"],
     [/\b(w\/u)\b/g, "wheels up"],
-    [/\b(White Eagle)\b/g, "Polish task force"],
+    [/\b(White Eagle)\b/g, "Polish Task Force (White Eagle)"],
     [/\b(WIA)\b/g, "Wounded in action"]
 ];
 function acronyms(string) {
@@ -504,12 +515,24 @@ function acronyms(string) {
     }
     return string;
 }
-function toggleAcronyms() {
-    $("acronym").each(function(index, acr) {
-        var a = $(acr);
+function toggleAcronyms(expand) {
+    $("acronym").each(function(index, acronym_element) {
+        var a = $(acronym_element);
         var html = a.html();
         var title = a.attr("title");
-        a.attr("title", html);
-        a.html(title);
+        var acronym = html.length < title.length ? html : title;
+        var definition = html.length > title.length ? html : title;
+        if (expand == undefined) {
+            expand = $("#toggleAcronyms").is(":checked");
+        }
+        if (expand) {
+            a.attr("title", acronym);
+            a.html(definition);
+            $(".acronyms-expanded").show();
+        } else {
+            a.attr("title", definition);
+            a.html(acronym);
+            $(".acronyms-expanded").hide();
+        }
     });
 }
