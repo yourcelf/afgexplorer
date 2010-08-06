@@ -316,7 +316,7 @@ var ACRONYMS = [
     [/\b(Litter)\b/g, "Stretcher used by medics"],
     [/\b(LKG)\b/g, "Lashkar Ghar"],
     [/\b(LN)\b/g, "Local national"],
-    [/\b(LNs)\b/g, "Local nationals"],
+    [/\b(LNs)\b/gi, "Local nationals"],
     [/\b(LNO)\b/g, "Liaison Officer"],
     [/\b(LTC)\b/g, "Lieutenant Colonel"],
     [/\b(Luna)\b/g, "German drone"],
@@ -493,7 +493,6 @@ function acronyms(string) {
     for (var i = 0; i < ACRONYMS.length; i++) {
         var re = ACRONYMS[i][0];
         var full = ACRONYMS[i][1].replace(/["]/g, "\\\"");
-        console.log(full);
         string = string.replace(re, "<acronym title=\"" + full + "\">$1</acronym>");
     }
     return string;
