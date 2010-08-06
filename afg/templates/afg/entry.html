@@ -171,6 +171,10 @@
 <div class='main'>
     <h1>{{ entry.title }}</h1>
     {{ entry.date }}
+    <span class='toggle-acronyms' style='color: #555'>
+        <label for='toggleAcronyms'>Toggle acronyms:</label>
+        <input id='toggleAcronyms' type='checkbox' onclick='toggleAcronyms();' />
+    </span>
     <noscript>
         <h2>Javascript required for full view</h2>
         <h3>Limited script-free view:</h3>
