@@ -8,16 +8,13 @@ from django.utils.safestring import mark_safe
 from django.db import connection
 from django.core import paginator
 from django.core.urlresolvers import reverse
-from jimmypage.cache import cache_page
 
 from afg.models import DiaryEntry, Phrase
 from afg import utils
 
-@cache_page
 def about(request):
     return utils.render_request(request, "about.html")
 
-@cache_page
 def show_entry(request, rid, template='afg/entry_page.html', api=False):
     try:
         entry = DiaryEntry.objects.get(report_key=rid)
@@ -71,7 +68,6 @@ def show_entry(request, rid, template='afg/entry_page.html', api=False):
         'phrase_entries': phrase_entries,
     })
 
-@cache_page
 def entry_popup(request):
     try:
         rids = [int(r) for r in request.GET.get('rids').split(',')]
@@ -180,7 +176,6 @@ def _excerpt(haystack, needles):
         return haystack[0:200]
 
 
-@cache_page
 def api(request):
     return utils.render_request(request, "afg/api.html")
 
@@ -223,7 +218,6 @@ SEARCH_PARAMS = {
     'classification': ('classification', unicode),
 }
 
-@cache_page
 def search(request, about=False, api=False):
     params = {}
     for key in request.GET:

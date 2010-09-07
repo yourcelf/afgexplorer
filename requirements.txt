@@ -1,5 +1,7 @@
 django==1.2.1
-johnny-cache
--e git://github.com/yourcelf/django-jimmypage.git#egg=django-jimmypage
-python-memcached
+-e git://github.com/toastdriven/django-haystack.git#egg=django-haystack
+pysolr
+lxml
+httplib2
 django-debug-toolbar
+johnny-cache

@@ -1,11 +1,14 @@
+import re
 import csv
 import datetime
+import itertools
 from collections import defaultdict
 
 from django.core.management.base import BaseCommand
 from django.db import connection
+from django.contrib.gis.geos import GEOSGeometry
 
-from afg import models
+from afg.models import DiaryEntry, Phrase
 
 fields = ["report_key", # 0
     "date",             # 1
@@ -39,57 +42,60 @@ fields = ["report_key", # 0
     "affiliation",      # 29
     "dcolor",           # 30
     "classification",   # 31
-]                       
+]
 
+def clean_summary(text):
+    # Fix ampersand mess
+    while text.find("&amp;") != -1:
+        text = text.replace("&amp;", "&")
+    text = re.sub('&(?!(#[a-z\d]+|\w+);)/gi', "&amp;", text)
+
+    # Linebreaks
+    text = text.replace("\n", "<br />")
+    return text
 
 class Command(BaseCommand):
     args = '<csv_file>'
-    help = """Import the wikileaks Afghan war diaries csv file."""
+    help = """Import the wikileaks Afghan War Diary CSV file."""
 
     def handle(self, *args, **kwargs):
         if len(args) < 1:
-            print """Requires one argument: the path to the wikileaks Afghan war
-diaries csv file."""
+            print """Requires one argument: the path to the wikileaks Afghan War Diary CSV file.  It can be downloaded here:
+
+http://wikileaks.org/wiki/Afghan_War_Diary,_2004-2010
+
+"""
             return
 
         with open(args[0]) as fh:
             reader = csv.reader(fh)
-            for row in reader:
-                # Create model
+            for c, row in enumerate(itertools.islice(reader, 0, 1000)):
+                print c
                 for i in range(13, 22):
                     row[i] = int(row[i] or 0)
-
-                entry = models.DiaryEntry.objects.create(
-                    **dict(zip(fields, row))
-                )
-                    
-                summary = row[6]
-                words = summary.upper().split()
+                kwargs = dict(zip(fields, row))
+                lon, lat = kwargs.pop('longitude'), kwargs.pop('latitude')
+                if lon and lat:
+                    kwargs['point'] = "POINT(%s %s)" % (lon, lat)
+                kwargs['summary'] = clean_summary(kwargs['summary'])
+                kwargs['total_casualties'] = (kwargs['friendly_wia'] + kwargs['friendly_kia'] + 
+                                              kwargs['host_nation_wia'] + kwargs['host_nation_kia'] +
+                                              kwargs['civilian_wia'] + kwargs['civilian_kia'] +
+                                              kwargs['enemy_wia'] + kwargs['enemy_kia'])
+                entry = DiaryEntry.objects.get_or_create(**kwargs)[0]
+                # Get words for phrases
+                summary = re.sub(r'<[^>]*?>', '', kwargs['summary'])
+                summary = re.sub(r'&[^;\s]+;', ' ', summary)
+                summary = re.sub(r'[^A-Z ]', ' ', summary.upper())
+                summary = re.sub(r'\s+', ' ', summary).strip()
+                words = summary.split(' ')
                 for i in range(3, 1, -1):
                     for j in range(i, len(words)):
-                        phrase = models.Phrase.objects.get_or_create(
-                                phrase=" ".join(words[j-i:j])[:255]
-                        )[0]
+                        phrase = Phrase.objects.get_or_create(phrase=" ".join(words[j-i:j])[:255])[0]
                         entry.phrase_set.add(phrase)
-
-        # denormalize entry counts.
+                
+        # dennormalize entry counts
         cursor = connection.cursor()
         cursor.execute("""
 UPDATE afg_phrase SET entry_count = (SELECT COUNT(pe.*) FROM afg_phrase_entries pe WHERE pe.phrase_id = afg_phrase.id)
         """)
-
-        # Postgresql full text search index
-        cursor.execute("""
-BEGIN;
-ALTER TABLE afg_diaryentry ADD COLUMN summary_tsv tsvector;
-CREATE TRIGGER tsvectorupdate BEFORE INSERT OR UPDATE ON afg_diaryentry
-    FOR EACH ROW EXECUTE PROCEDURE tsvector_update_trigger(summary_tsv, 'pg_catalog.english', summary);
-CREATE INDEX summary_tsv_index ON afg_diaryentry USING gin(summary_tsv);
-UPDATE afg_diaryentry SET summary_tsv=to_tsvector(summary);
-COMMIT;
-        """)
-
-        # denormalize total_casualties
-        cusror.execute("""
-UPDATE afg_diaryentry SET total_casualties = civilian_kia + civilian_wia + friendly_kia + friendly_wia + host_nation_kia + host_nation_wia + enemy_kia + enemy_wia;
-""")
