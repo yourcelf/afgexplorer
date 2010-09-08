@@ -78,8 +78,6 @@
     <dynamicField name="*_dt" type="date"    indexed="true"  stored="true"/>
     
 
-    <field name="point" type="text" indexed="true" stored="true" multiValued="false" />
-
     <field name="unit_name" type="text" indexed="true" stored="true" multiValued="false" />
 
     <field name="unit_name_exact" type="string" indexed="true" stored="true" multiValued="false" />
@@ -122,6 +120,10 @@
 
     <field name="type_of_unit_exact" type="string" indexed="true" stored="true" multiValued="false" />
 
+    <field name="total_casualties" type="slong" indexed="true" stored="true" multiValued="false" />
+
+    <field name="total_casualties_exact" type="slong" indexed="true" stored="true" multiValued="false" />
+
     <field name="title" type="text" indexed="true" stored="true" multiValued="false" />
 
     <field name="dcolor" type="text" indexed="true" stored="true" multiValued="false" />
@@ -139,6 +141,8 @@
     <field name="civilian_kia" type="slong" indexed="true" stored="true" multiValued="false" />
 
     <field name="civilian_kia_exact" type="slong" indexed="true" stored="true" multiValued="false" />
+
+    <field name="latitude" type="sfloat" indexed="true" stored="true" multiValued="false" />
 
     <field name="host_nation_wia" type="slong" indexed="true" stored="true" multiValued="false" />
 
@@ -181,6 +185,8 @@
     <field name="region" type="text" indexed="true" stored="true" multiValued="false" />
 
     <field name="region_exact" type="string" indexed="true" stored="true" multiValued="false" />
+
+    <field name="longitude" type="sfloat" indexed="true" stored="true" multiValued="false" />
 
     <field name="summary" type="text" indexed="true" stored="true" multiValued="false" />
 

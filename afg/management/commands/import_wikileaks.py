@@ -5,8 +5,7 @@ import itertools
 from collections import defaultdict
 
 from django.core.management.base import BaseCommand
-from django.db import connection
-from django.contrib.gis.geos import GEOSGeometry
+from django.db import connection, transaction
 
 from afg.models import DiaryEntry, Phrase
 
@@ -69,20 +68,15 @@ http://wikileaks.org/wiki/Afghan_War_Diary,_2004-2010
 
         with open(args[0]) as fh:
             reader = csv.reader(fh)
-            for c, row in enumerate(itertools.islice(reader, 0, 1000)):
+            for c, row in enumerate(reader):
                 print c
                 for i in range(13, 22):
                     row[i] = int(row[i] or 0)
                 kwargs = dict(zip(fields, row))
-                lon, lat = kwargs.pop('longitude'), kwargs.pop('latitude')
-                if lon and lat:
-                    kwargs['point'] = "POINT(%s %s)" % (lon, lat)
                 kwargs['summary'] = clean_summary(kwargs['summary'])
-                kwargs['total_casualties'] = (kwargs['friendly_wia'] + kwargs['friendly_kia'] + 
-                                              kwargs['host_nation_wia'] + kwargs['host_nation_kia'] +
-                                              kwargs['civilian_wia'] + kwargs['civilian_kia'] +
-                                              kwargs['enemy_wia'] + kwargs['enemy_kia'])
-                entry = DiaryEntry.objects.get_or_create(**kwargs)[0]
+                kwargs['latitude'] = float(kwargs['latitude']) if kwargs['latitude'] else None
+                kwargs['longitude'] = float(kwargs['longitude']) if kwargs['longitude'] else None
+                entry = DiaryEntry.objects.create(**kwargs)
                 # Get words for phrases
                 summary = re.sub(r'<[^>]*?>', '', kwargs['summary'])
                 summary = re.sub(r'&[^;\s]+;', ' ', summary)
@@ -91,11 +85,12 @@ http://wikileaks.org/wiki/Afghan_War_Diary,_2004-2010
                 words = summary.split(' ')
                 for i in range(3, 1, -1):
                     for j in range(i, len(words)):
-                        phrase = Phrase.objects.get_or_create(phrase=" ".join(words[j-i:j])[:255])[0]
+                        phrase, created = Phrase.objects.get_or_create(phrase=" ".join(words[j-i:j])[:255])
                         entry.phrase_set.add(phrase)
                 
         # dennormalize entry counts
         cursor = connection.cursor()
         cursor.execute("""
-UPDATE afg_phrase SET entry_count = (SELECT COUNT(pe.*) FROM afg_phrase_entries pe WHERE pe.phrase_id = afg_phrase.id)
+UPDATE afg_phrase SET entry_count = (SELECT COUNT(pe.*) FROM afg_phrase_entries pe WHERE pe.phrase_id = afg_phrase.id);
         """)
+        transaction.commit_unless_managed()

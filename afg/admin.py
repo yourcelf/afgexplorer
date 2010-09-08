@@ -9,4 +9,6 @@ class DiaryAdmin(admin.ModelAdmin):
     date_hierarchy = 'date'
 admin.site.register(models.DiaryEntry, DiaryAdmin)
 
-admin.site.register(models.Phrase)
+class PhraseAdmin(admin.ModelAdmin):
+    filter_horizontal = ('entries',)
+admin.site.register(models.Phrase, PhraseAdmin)

@@ -9,7 +9,7 @@ urlpatterns = patterns('',
     (r'^admin/', include(admin.site.urls)),
     (r'', include('afg.urls')),
 )
-if True: # settings.DEBUG
+if settings.DEBUG:
     urlpatterns += patterns('',
         (r'^%s/(?P<path>.*)$' % settings.MEDIA_URL[1:-1],
             'django.views.static.serve',

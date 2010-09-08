@@ -1,4 +1,4 @@
-from django.contrib.gis.db import models
+from django.db import models
 
 # No DB indexes because we're kicking all that to SOLR.
 class DiaryEntry(models.Model):
@@ -25,6 +25,8 @@ class DiaryEntry(models.Model):
     enemy_kia = models.IntegerField()
     enemy_detained = models.IntegerField()
     mgrs = models.CharField(max_length=255)
+    latitude = models.FloatField(blank=True, null=True)
+    longitude = models.FloatField(blank=True, null=True)
     originator_group = models.CharField(max_length=255)
     updated_by_group = models.CharField(max_length=255)
     ccir = models.CharField(max_length=255)
@@ -32,13 +34,10 @@ class DiaryEntry(models.Model):
     affiliation = models.CharField(max_length=255)
     dcolor = models.CharField(max_length=255)
     classification = models.CharField(max_length=255)
-    # GIS point
-    point = models.PointField(blank=True, null=True)
 
     # denormalization for sorting
-    total_casualties = models.IntegerField(default=0)
-
-    objects = models.GeoManager()
+    def total_casualties(self):
+        return self.friendly_wia + self.friendly_kia + self.host_nation_wia + self.host_nation_kia + self.civilian_wia + self.civilian_kia + self.enemy_wia + self.enemy_kia
 
     def __unicode__(self):
         return self.title
@@ -50,7 +49,7 @@ class DiaryEntry(models.Model):
         return obj
 
     class Meta:
-        ordering = ['-total_casualties']
+        ordering = ['date']
         verbose_name_plural = 'Diary entries'
 
     def casualty_summary(self):

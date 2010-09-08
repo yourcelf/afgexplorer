@@ -28,6 +28,8 @@ class DiaryEntryIndex(indexes.SearchIndex):
     enemy_kia = indexes.IntegerField(model_attr='enemy_kia', faceted=True)
     enemy_detained = indexes.IntegerField(model_attr='enemy_detained', faceted=True)
     mgrs = indexes.CharField(model_attr='mgrs', faceted=True)
+    latitude = indexes.FloatField(model_attr='latitude', null=True)
+    longitude = indexes.FloatField(model_attr='longitude', null=True)
     originator_group = indexes.CharField(model_attr='originator_group', faceted=True)
     updated_by_group = indexes.CharField(model_attr='updated_by_group', faceted=True)
     ccir = indexes.CharField(model_attr='ccir', faceted=True)
@@ -35,7 +37,7 @@ class DiaryEntryIndex(indexes.SearchIndex):
     affiliation = indexes.CharField(model_attr='affiliation', faceted=True)
     dcolor = indexes.CharField(model_attr='dcolor', faceted=True)
     classification = indexes.CharField(model_attr='classification', faceted=True)
-    point = indexes.CharField(model_attr='point', null=True)
+    total_casualties = indexes.IntegerField(model_attr='total_casualties', faceted=True)
 
     def get_queryset(self):
         return DiaryEntry.objects.all()

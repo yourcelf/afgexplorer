@@ -1,6 +1,7 @@
 import re
 import urllib
 import random
+import datetime
 from collections import defaultdict
 
 from django.http import Http404
@@ -9,7 +10,12 @@ from django.db import connection
 from django.core import paginator
 from django.core.urlresolvers import reverse
 
+from haystack.query import SearchQuerySet
+from haystack.utils import Highlighter
+import haystack
+
 from afg.models import DiaryEntry, Phrase
+from afg.search_indexes import DiaryEntryIndex
 from afg import utils
 
 def about(request):
@@ -94,28 +100,19 @@ def random_entry(request):
     report_key = DiaryEntry.objects.all()[random.randint(0, count)].report_key
     return utils.redirect_to("afg.show_entry", report_key)
 
-def _fix_amps(haystack):
-    amps = re.compile("&amp;", re.I)
-    while True:
-        fixed = amps.sub("&", haystack)
-        if fixed == haystack:
-            break
-        haystack = fixed
-    return re.sub("&(?![A-Za-z0-9#]+;)", "&amp;", haystack)
-
-def _excerpt(haystack, needles):
+def _excerpt(text, needles):
+    print needles
     if not needles:
         i = 200
-        while i < len(haystack) and haystack[i] != " ":
+        while i < len(text) and text[i] != " ":
             i += 1
-        return haystack[0:i] + "..."
+        return text[0:i] + "..."
 
-    haystack = re.sub("\s+", " ", haystack)
-    haystack = _fix_amps(haystack)
+    text = re.sub("\s+", " ", text)
     words = [re.sub("[^-A-Z0-9 ]", "", needle.upper()) for needle in needles]
     locations = defaultdict(list)
     for word in words:
-        for match in re.finditer(word, haystack, re.I):
+        for match in re.finditer(word, text, re.I):
             locations[word].append(match.start())
 
     winner = {}
@@ -152,16 +149,16 @@ def _excerpt(haystack, needles):
         snips = sorted(winner.items())
         n = 0
         for loc, word in snips:
-            snipped.append((haystack[n:loc], 0))
-            snipped.append((haystack[loc:loc+len(word)], 1))
+            snipped.append((text[n:loc], 0))
+            snipped.append((text[loc:loc+len(word)], 1))
             n = loc + len(word)
-        snipped.append((haystack[n:], 0))
+        snipped.append((text[n:], 0))
         out = []
         for i, (snip, bold) in enumerate(snipped):
             if bold:
-                out.append("<b>")
+                out.append("<em>")
                 out.append(snip)
-                out.append("</b>")
+                out.append("</em>")
             else:
                 if len(snip) > 100:
                     if i != 0:
@@ -173,144 +170,180 @@ def _excerpt(haystack, needles):
                     out.append(snip)
         return mark_safe("".join(out))
     else:
-        return haystack[0:200]
+        return text[0:200]
 
 
 def api(request):
     return utils.render_request(request, "afg/api.html")
 
-SEARCH_PARAMS = {
-    'q': ('q', unicode),
-    'date__day': ('date__day', int),
-    'date__year': ('date__year', int),
-    'date__month': ('date__month', int),
-    'category': ('category', unicode),
-    'type': ('type', unicode),
-    'region': ('region', unicode),
-    'attack_on': ('attack_on', unicode),
-    'complex_attack': ('complex_attack', lambda e: "yes" if e else "no"),
-    'unit_name': ('unit_name', unicode),
-    'type_of_unit': ('type_of_unit', unicode),
-    'reporting_unit': ('reporting_unit', unicode),
-    'friendly_wia__gte': ('friendly_wia__gte', int),
-    'friendly_wia__lte': ('friendly_wia__lte', int),
-    'host_nation_wia__gte': ('host_nation_wia__gte', int),
-    'host_nation_wia__lte': ('host_nation_wia__lte', int),
-    'civilian_wia__gte': ('civilian_wia__gte', int),
-    'civilian_wia__lte': ('civilian_wia__lte', int),
-    'enemy_wia__gte': ('enemy_wia__gte', int),
-    'enemy_wia__lte': ('enemy_wia__lte', int),
-    'friendly_kia__gte': ('friendly_kia__gte', int),
-    'friendly_kia__lte': ('friendly_kia__lte', int),
-    'host_nation_kia__gte': ('host_nation_kia__gte', int),
-    'host_nation_kia__lte': ('host_nation_kia__lte', int),
-    'civilian_kia__gte': ('civilian_kia__gte', int),
-    'civilian_kia__lte': ('civilian_kia__lte', int),
-    'enemy_kia__gte': ('enemy_kia__gte', int),
-    'enemy_kia__lte': ('enemy_kia__lte', int),
-    'enemy_detained__gte': ('enemy_detained__gte', int),
-    'enemy_detained__lte': ('enemy_detained__lte', int),
-    'mgrs': ('mgrs', unicode),
-    'originator_group': ('originator_group', unicode),
-    'updated_by_group': ('updated_by_group', unicode),
-    'affiliation': ('affiliation', unicode),
-    'dcolor': ('dcolor', unicode),
-    'classification': ('classification', unicode),
-}
-
 def search(request, about=False, api=False):
+    sqs = SearchQuerySet()
     params = {}
-    for key in request.GET:
-        trans = SEARCH_PARAMS.get(key, None)
-        if trans and request.GET[key]:
-            try:
-                params[trans[0]] = trans[1](request.GET[key])
-            except ValueError:
-                continue
+
+    text_facets = ('type_', 'region', 'attack_on', 'type_of_unit', 'affiliation',
+            'dcolor', 'classification', 'category')
+    integer_facets = ('civilian_kia', 'civilian_wia', 'host_nation_kia', 'host_nation_wia',
+            'friendly_kia', 'friendly_wia', 'enemy_kia', 'enemy_wia', 'enemy_detained')
+    # prepare fields for faceting.  `date` is special-cased later.
+    for facet in text_facets:
+        sqs = sqs.facet(facet)
+    for facet in integer_facets:
+        sqs = sqs.facet(facet)
+
+    # Full text search
+    q = request.GET.get('q', None)
+    if q:
+        sqs = sqs.auto_query(q).highlight()
+        params['q'] = q
+
+    # Narrow query set by given facets
+    for key,val in request.GET.iteritems():
+        if val:
+            val == sqs.query.clean(val)
+            # Add an "exact" param and split by '__'.  If the field already has
+            # e.g. __gte, the __exact addendum is ignored, since we only look
+            # at the first two parts.
+            field_name, lookup = (key + "__exact").rsplit(r'__')[0:2]
+            field_name = "type_" if field_name == "type" else field_name
+            field = DiaryEntryIndex.fields.get(field_name, None)
+            if field:
+                if lookup == 'exact':
+                    sqs = sqs.narrow(u'%s:"%s"' % (field.index_fieldname, val))
+                elif lookup == 'gte':
+                    sqs = sqs.narrow(u"%s:[%s TO *]" % val)
+                elif lookup == 'lte':
+                    sqs = sqs.narrow(u"%s:[* TO %s]" % val)
+                else:
+                    continue
+                params[key] = val
+    # Narrow query set by given dates
+    day = int(request.GET.get('date__day', 0))
+    month = int(request.GET.get('date__month', 0))
+    year = int(request.GET.get('date__year', 0))
+    if year:
+        if not month:
+            start = datetime.datetime(year, 1, 1)
+            end = datetime.datetime(year + 1, 1, 1) - datetime.timedelta(seconds=1)
+            params['date__year'] = year
+            sqs = sqs.date_facet('date', start, end, 'month')
+        elif not day:
+            start = datetime.datetime(year, month, 1)
+            next_month = datetime.datetime(year, month, 1) + datetime.timedelta(days=31)
+            end = datetime.datetime(next_month.year, next_month.month, 1) - datetime.timedelta(seconds=1)
+            params['date__year'] = year
+            params['date__month'] = month
+            sqs = sqs.date_facet('date', start, end, 'day')
+        else:
+            start = datetime.datetime(year, month, day)
+            end = datetime.datetime(year, month, day + 1) - datetime.timedelta(seconds=1)
+            params['date__year'] = year
+            params['date__month'] = month
+            params['date__day'] = day
+            sqs = sqs.date_facet('date', start, end, 'day')
+        sqs = sqs.narrow("date:[%s TO %s]" % (start.isoformat() + "Z", end.isoformat() + "Z"))
+    else:
+        start = datetime.datetime(2004, 1, 1, 0, 0, 0)
+        end = datetime.datetime.now()
+        sqs = sqs.date_facet('date', start, end, 'year')
+
 
     # sorting
     sort_by = request.GET.get('sort_by', 'date')
     sort_dir = request.GET.get('sort_dir', 'asc')
-    # special handling of full text search
-    q = params.pop('q', None)
-    if q:
-        qs = DiaryEntry.objects.extra(where=['summary_tsv @@ plainto_tsquery(%s)'], params=[q])
-    else:
-        qs = DiaryEntry.objects.all()
-    qs = qs.filter(**params)
     direction_indicator = '-' if sort_dir == 'desc' else ''
     if sort_by in ('date', 'total_casualties'):
-        qs = qs.order_by(direction_indicator + sort_by)
-
-    # Restore params now that we've finished filtering on the non-model elements
-    if q:
-        params['q'] = q
+        sqs = sqs.order_by(direction_indicator + sort_by)
     params['sort_by'] = sort_by
     params['sort_dir'] = sort_dir
 
-
-    p = paginator.Paginator(qs, 10)
+    # Pagination
+    p = paginator.Paginator(sqs.load_all(), 10)
     try:
         page = p.page(int(request.GET.get('p', 1)))
     except (ValueError, paginator.InvalidPage, paginator.EmptyPage):
         page = p.page(p.num_pages)
 
-    if q:
-        needles = q.split()
-    else:
-        needles = None
-    entries = [(entry, _excerpt(entry.summary, needles)) for entry in page.object_list]
+    # Results Summaries and highlighting
+    entries = []
+    for entry in page.object_list:
+        if entry.highlighted:
+            excerpt = mark_safe(u"... %s ..." % entry.highlighted['text'][0])
+        else:
+            excerpt = entry.summary[0:200] + "..."
+        entries.append((entry, excerpt))
 
+    # Choices
+    total_count = sqs.count()
+    counts = sqs.facet_counts()
     choices = utils.OrderedDict()
+    date_facets = []
+    for d,c in sorted(counts['dates']['date'].iteritems()):
+        try:
+            # magic method to parse ISO date format.
+            dt = datetime.datetime(*map(int, re.split('[^\d]', d)[:-1]))
+            if c > 0:
+                date_facets.append((dt, c))
+        except (TypeError, ValueError):
+            pass
 
     # Date choices
     choices['date__year'] = {
-            'title': 'Year',
-            'choices': [(d.year, d.year) for d in qs.dates('date', 'year')],
-            'value': params.get('date__year', ''),
+        'title': 'Year',
+        'value': params.get('date__year', ''),
     }
-    if 'date__year' in params or 'date__month' in params:
+    year = params.get('date__year', '')
+    if year:
+        choices['date__year']['choices'] = [(year, year, total_count)]
+        month = params.get('date__month', '')
         choices['date__month'] = {
                 'title': 'Month',
-                'choices': sorted(set((d.strftime("%B"), d.month) for d in qs.dates('date', 'month'))),
-                'value': params.get('date__month', ''),
+                'value': month
         }
-    if ('date__year' in params and 'date__month' in params) or 'date__day' in params:
-        choices['date__day'] = {
-                'title': 'Day',
-                'choices': [(d.day, d.day) for d in qs.dates('date', 'day')],
-                'value': params.get('date__day', ''),
-        }
+        if month:
+            choices['date__month']['choices'] = [(date_facets[0][0].strftime("%B"), month, total_count)]
+            day = params.get('date__day', '')
+            choices['date__day'] = {
+                    'title': 'Day',
+                    'value': day
+            }
+            if day: 
+                choices['date__day']['choices'] = [(day, day, total_count)]
+            else:
+                choices['date__day']['choices'] = [(d.day, d.day, c) for d, c in date_facets]
+        else:
+            choices['date__month']['choices'] = [(d.strftime("%B"), d.month, c) for d, c in date_facets]
+    else:
+        choices['date__year']['choices'] = [(d.year, d.year, c) for d, c in date_facets]
+        params.pop('date__month', '')
+        params.pop('date__day', '')
 
-    # General field choices
-    for field in ('type', 'region', 'attack_on', 'type_of_unit', 
-            'affiliation', 'dcolor', 'classification', 'category'):
-        cs = list(q.values()[0] for q in qs.distinct().order_by(field).values(field))
+    # Text field choices
+    for field in text_facets + integer_facets:
         choices[field] = {
             'title': field.replace('_', ' ').title(), 
-            'choices': zip(cs, cs),
+            'choices': sorted((k, k, c) for k, c in counts['fields'][field] if c > 0),
             'value': params.get(field, ''),
         }
 
     min_max_choices = utils.OrderedDict()
-    # Integer choices
-    for field in ('total_casualties', 'civilian_kia', 'civilian_wia', 'host_nation_kia', 'host_nation_wia', 'friendly_kia', 'friendly_wia', 'enemy_kia', 'enemy_wia', 'enemy_detained'):
-        try:
-            minimum = qs.order_by(field).values(field)[0][field]
-            maximum = qs.order_by("-%s" % field).values(field)[0][field]
-        except IndexError:
-            continue
-        if minimum == maximum and \
-                not params.get(field + '__gte') and \
-                not params.get(field + '__lte'):
-            continue
-        min_max_choices[field] = {
-                'min': minimum,
-                'max': maximum,
-                'title': fix_constraint_name(field),
-                'min_value': params.get(field + '__gte', ''),
-                'max_value': params.get(field + '__lte', ''),
-        }
+#    # Integer choices
+#    for field in integer_facets:
+#        try:
+#            minimum = qs.order_by(field).values(field)[0][field]
+#            maximum = qs.order_by("-%s" % field).values(field)[0][field]
+#        except IndexError:
+#            continue
+#        if minimum == maximum and \
+#                not params.get(field + '__gte') and \
+#                not params.get(field + '__lte'):
+#            continue
+#        min_max_choices[field] = {
+#                'min': minimum,
+#                'max': maximum,
+#                'title': fix_constraint_name(field),
+#                'min_value': params.get(field + '__gte', ''),
+#                'max_value': params.get(field + '__lte', ''),
+#        }
 
     search_url = reverse('afg.search')
 

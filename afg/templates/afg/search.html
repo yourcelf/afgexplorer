@@ -16,9 +16,9 @@
         {% for choice in choice_opts.choices %}
         <li>
             {% if choice_opts.choices|length > 1 %}
-                <a href="{{ qstring }}&{{ param }}={{choice.1}}">{% firstof choice.0 "None" %}</a>
+                <a href="{{ qstring }}&{{ param }}={{choice.1}}">{% firstof choice.0 "None" %}</a> ({{ choice.2 }})
             {% else %}
-                {% firstof choice.0 "None" %}
+                {% firstof choice.0 "None" %} ({{ choice.2 }})
             {% endif %}
         </li>
         {% endfor %}
