@@ -101,7 +101,6 @@ def random_entry(request):
     return utils.redirect_to("afg.show_entry", report_key)
 
 def _excerpt(text, needles):
-    print needles
     if not needles:
         i = 200
         while i < len(text) and text[i] != " ":
@@ -182,7 +181,7 @@ def search(request, about=False, api=False):
 
     text_facets = ('type_', 'region', 'attack_on', 'type_of_unit', 'affiliation',
             'dcolor', 'classification', 'category')
-    integer_facets = ('civilian_kia', 'civilian_wia', 'host_nation_kia', 'host_nation_wia',
+    integer_facets = ('total_casualties', 'civilian_kia', 'civilian_wia', 'host_nation_kia', 'host_nation_wia',
             'friendly_kia', 'friendly_wia', 'enemy_kia', 'enemy_wia', 'enemy_detained')
     # prepare fields for faceting.  `date` is special-cased later.
     for facet in text_facets:
@@ -199,46 +198,54 @@ def search(request, about=False, api=False):
     # Narrow query set by given facets
     for key,val in request.GET.iteritems():
         if val:
-            val == sqs.query.clean(val)
             # Add an "exact" param and split by '__'.  If the field already has
             # e.g. __gte, the __exact addendum is ignored, since we only look
             # at the first two parts.
             field_name, lookup = (key + "__exact").rsplit(r'__')[0:2]
+            # "type" is a reserved name for Solr, so munge it to "type_"
             field_name = "type_" if field_name == "type" else field_name
+            # Dates are handled specially below
+            if field_name == 'date':
+                continue
             field = DiaryEntryIndex.fields.get(field_name, None)
             if field:
+                val = sqs.query.clean(val)
+                print field, val
                 if lookup == 'exact':
                     sqs = sqs.narrow(u'%s:"%s"' % (field.index_fieldname, val))
                 elif lookup == 'gte':
-                    sqs = sqs.narrow(u"%s:[%s TO *]" % val)
+                    sqs = sqs.narrow(u"%s:[%s TO *]" % (field.index_fieldname, val))
                 elif lookup == 'lte':
-                    sqs = sqs.narrow(u"%s:[* TO %s]" % val)
+                    sqs = sqs.narrow(u"%s:[* TO %s]" % (field.index_fieldname, val))
                 else:
                     continue
                 params[key] = val
+
     # Narrow query set by given dates
-    day = int(request.GET.get('date__day', 0))
-    month = int(request.GET.get('date__month', 0))
-    year = int(request.GET.get('date__year', 0))
+    date = request.GET.get('date', '')
+    if date:
+        year, month, day = [int(d) for d in (date + "-0-0").split("-")[0:3]]
+    else:
+        # Legacy date format 
+        day = int(request.GET.get('date__day', 0))
+        month = int(request.GET.get('date__month', 0))
+        year = int(request.GET.get('date__year', 0))
     if year:
         if not month:
             start = datetime.datetime(year, 1, 1)
             end = datetime.datetime(year + 1, 1, 1) - datetime.timedelta(seconds=1)
-            params['date__year'] = year
+            params['date'] = start.strftime("%Y")
             sqs = sqs.date_facet('date', start, end, 'month')
         elif not day:
             start = datetime.datetime(year, month, 1)
             next_month = datetime.datetime(year, month, 1) + datetime.timedelta(days=31)
             end = datetime.datetime(next_month.year, next_month.month, 1) - datetime.timedelta(seconds=1)
-            params['date__year'] = year
-            params['date__month'] = month
+            params['date'] = start.strftime("%Y-%m")
             sqs = sqs.date_facet('date', start, end, 'day')
         else:
             start = datetime.datetime(year, month, day)
             end = datetime.datetime(year, month, day + 1) - datetime.timedelta(seconds=1)
-            params['date__year'] = year
-            params['date__month'] = month
-            params['date__day'] = day
+            params['date'] = start.strftime("%Y-%m-%d")
             sqs = sqs.date_facet('date', start, end, 'day')
         sqs = sqs.narrow("date:[%s TO %s]" % (start.isoformat() + "Z", end.isoformat() + "Z"))
     else:
@@ -269,7 +276,7 @@ def search(request, about=False, api=False):
         if entry.highlighted:
             excerpt = mark_safe(u"... %s ..." % entry.highlighted['text'][0])
         else:
-            excerpt = entry.summary[0:200] + "..."
+            excerpt = (entry.summary or '')[0:200] + "..."
         entries.append((entry, excerpt))
 
     # Choices
@@ -287,45 +294,48 @@ def search(request, about=False, api=False):
             pass
 
     # Date choices
-    choices['date__year'] = {
-        'title': 'Year',
-        'value': params.get('date__year', ''),
+    choices['date'] = {
+        'title': 'Date',
+        'value': params.get('date', ''),
     }
-    year = params.get('date__year', '')
+    year, month, day = (params.get('date', '') + "--").split("-")[0:3]
     if year:
-        choices['date__year']['choices'] = [(year, year, total_count)]
-        month = params.get('date__month', '')
-        choices['date__month'] = {
-                'title': 'Month',
-                'value': month
-        }
         if month:
-            choices['date__month']['choices'] = [(date_facets[0][0].strftime("%B"), month, total_count)]
-            day = params.get('date__day', '')
-            choices['date__day'] = {
-                    'title': 'Day',
-                    'value': day
-            }
             if day: 
-                choices['date__day']['choices'] = [(day, day, total_count)]
+                d = datetime.date(int(year), int(month), int(day))
+                choices['date']['choices'] = [(d.strftime("%Y %B %e"), d.strftime("%Y-%m-%d"), total_count)]
             else:
-                choices['date__day']['choices'] = [(d.day, d.day, c) for d, c in date_facets]
+                choices['date']['choices'] = [(d.strftime("%B %e"), d.strftime("%Y-%m-%d"), c) for d, c in date_facets]
         else:
-            choices['date__month']['choices'] = [(d.strftime("%B"), d.month, c) for d, c in date_facets]
+            choices['date']['choices'] = [(d.strftime("%B"), d.strftime("%Y-%m"), c) for d, c in date_facets]
     else:
-        choices['date__year']['choices'] = [(d.year, d.year, c) for d, c in date_facets]
-        params.pop('date__month', '')
-        params.pop('date__day', '')
+        choices['date']['choices'] = [(d.year, d.year, c) for d, c in date_facets]
 
     # Text field choices
-    for field in text_facets + integer_facets:
+    for field in text_facets:
         choices[field] = {
             'title': field.replace('_', ' ').title(), 
             'choices': sorted((k, k, c) for k, c in counts['fields'][field] if c > 0),
             'value': params.get(field, ''),
         }
 
+    # Integer choices
     min_max_choices = utils.OrderedDict()
+    for field in integer_facets:
+        facets = sorted([(int(k), v) for k,v in counts['fields'][field]])
+        min_max_choices[field] = {
+            'title': fix_constraint_name(field),
+            'counts': [v for k,v in facets],
+            'min_value': facets[0][0],
+            'max_value': facets[-1][0],
+            'min_count': facets[0][1],
+            'max_count': facets[-1][1],
+            'chosen_min': params.get(field + '__gte', ''),
+            'chosen_max': params.get(field + '__lte', ''),
+        }
+        
+
+
 #    # Integer choices
 #    for field in integer_facets:
 #        try:

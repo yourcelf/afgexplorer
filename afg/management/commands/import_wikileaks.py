@@ -73,6 +73,12 @@ http://wikileaks.org/wiki/Afghan_War_Diary,_2004-2010
                 for i in range(13, 22):
                     row[i] = int(row[i] or 0)
                 kwargs = dict(zip(fields, row))
+                try:
+                    DiaryEntry.objects.get(report_key=kwargs['report_key'])
+                    continue
+                except DiaryEntry.DoesNotExist:
+                    pass
+
                 kwargs['summary'] = clean_summary(kwargs['summary'])
                 kwargs['latitude'] = float(kwargs['latitude']) if kwargs['latitude'] else None
                 kwargs['longitude'] = float(kwargs['longitude']) if kwargs['longitude'] else None
