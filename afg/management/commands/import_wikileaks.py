@@ -90,21 +90,14 @@ http://wikileaks.org/wiki/Afghan_War_Diary,_2004-2010
                         phrases[" ".join(words[j-i:j])].add(entry.id)
 
         n = len(phrases)
-        phrase_mappings = []
-        phrase_counts = []
+        cursor = connection.cursor()
         for c, (phrase, entry_ids) in enumerate(phrases.iteritems()):
             if len(entry_ids) > 1:
                 print c, n
-                phrase = Phrase.objects.create(phrase=phrase)
-                phrase_id = phrase.id
-                phrase_counts.append((len(entry_ids), phrase_id))
-                for entry_id in entry_ids:
-                    phrase_mappings.append((phrase_id, entry_id))
-
-        # Quickly as possible, update phrase mappings.
-        cursor = connection.cursor()
-        print 'phrase_entries...'
-        cursor.executemany("INSERT INTO afg_phrase_entries (phrase_id, diaryentry_id) VALUES (%s, %s)", phrase_mappings)
-        print 'phrase entry counts...'
-        cursor.executemany("""UPDATE afg_phrase SET entry_count=%s WHERE id=%s""", phrase_counts)
+                cursor.execute("INSERT INTO afg_phrase (phrase, entry_count) VALUES (%s, %s) RETURNING id", (phrase, len(entry_ids)))
+                phrase_id = cursor.fetchone()[0]
+                cursor.execute("""
+                    INSERT INTO afg_phrase_entries (phrase_id, diaryentry_id) VALUES 
+                    """ + ",".join("(%s, %s)" % (phrase_id, entry_id) for entry_id in entry_ids)
+                )
         transaction.commit_unless_managed()
