@@ -6,7 +6,7 @@ from django.template import RequestContext
 from django.shortcuts import render_to_response
 
 def render_json(request, obj):
-    #return HttpResponse(json.dumps(obj, indent=4)) # for debugging
+    return HttpResponse("<pre>" + json.dumps(obj, indent=4)) # for debugging
     dumped = json.dumps(obj)
     callback = request.GET.get('callback', None)
     if callback:

@@ -1,5 +1,57 @@
+import re
+import datetime
+
 from django.db import models
 
+def clean_summary(text):
+    # Fix ampersand mess
+    while text.find("&amp;") != -1:
+        text = text.replace("&amp;", "&")
+    text = re.sub('&(?!(#[a-z\d]+|\w+);)/gi', "&amp;", text)
+    return text
+
+def force_int(a):
+    return int(a or 0)
+
+def float_or_null(f):
+    if f:
+        return float(f)
+    return None
+
+import_fields = [
+    ("report_key",),       # 0
+    ("date",),             # 1
+    ("type",),             # 2
+    ("category",),         # 3
+    ("tracking_number",),  # 4
+    ("title",),            # 5 
+    ("summary", clean_summary),          # 6
+    ("region",),           # 7 
+    ("attack_on",),        # 8
+    ("complex_attack",),   # 9 
+    ("reporting_unit",),   # 10
+    ("unit_name",),        # 11
+    ("type_of_unit",),     # 12 
+    ("friendly_wia", force_int),     # 13
+    ("friendly_kia", force_int),     # 14
+    ("host_nation_wia", force_int),  # 15
+    ("host_nation_kia", force_int),  # 16
+    ("civilian_wia", force_int),     # 17
+    ("civilian_kia", force_int),     # 18
+    ("enemy_wia", force_int),        # 19
+    ("enemy_kia", force_int),        # 20
+    ("enemy_detained", force_int),   # 21
+    ("mgrs",),             # 22
+    ("latitude", float_or_null),         # 23
+    ("longitude", float_or_null),        # 24
+    ("originator_group",), # 25
+    ("updated_by_group",), # 26
+    ("ccir",),             # 27
+    ("sigact",),           # 28
+    ("affiliation",),      # 29
+    ("dcolor",),           # 30
+    ("classification",),   # 31
+]
 # No DB indexes because we're kicking all that to SOLR.
 class DiaryEntry(models.Model):
     report_key = models.CharField(max_length=255, unique=True)
@@ -35,7 +87,6 @@ class DiaryEntry(models.Model):
     dcolor = models.CharField(max_length=255)
     classification = models.CharField(max_length=255)
 
-    # denormalization for sorting
     def total_casualties(self):
         return self.friendly_wia + self.friendly_kia + self.host_nation_wia + self.host_nation_kia + self.civilian_wia + self.civilian_kia + self.enemy_wia + self.enemy_kia
 
@@ -51,20 +102,6 @@ class DiaryEntry(models.Model):
     class Meta:
         ordering = ['date']
         verbose_name_plural = 'Diary entries'
-
-    def casualty_summary(self):
-        parts = []
-        for attr in ('civilian', 'host_nation', 'friendly', 'enemy'):
-            k = getattr(self, attr + '_kia')
-            w = getattr(self, attr + '_wia')
-            if k or w:
-                counts = []
-                if k:
-                    counts.append("%i killed" % k)
-                if w:
-                    counts.append("%i wounded" % w)
-                parts.append("%s: %s" % (attr.title().replace("_", " "), ", ".join(counts)))
-            return "; ".join(parts)
 
 class Phrase(models.Model):
     phrase = models.CharField(max_length=255, unique=True, db_index=True)

@@ -356,3 +356,10 @@ acronym, .toggle-acronyms {
 .constraints .sort a.sortdir, .constraints .sort a.sortdir:visited {
   text-decoration: none;
 }
+
+/* line 157, ././style.sass */
+.input-prompt {
+  position: absolute;
+  color: #aaaaaa;
+  margin: 0.2em 0 0 0.5em;
+}

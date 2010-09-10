@@ -19,61 +19,82 @@
     </script>
     <form method='get' action='{% url afg.search %}' onsubmit='return clean_get(this);'>
         <input type='text' value='{{ params.q }}' name='q' />
+        {% if params.sort %}<input type='hidden' value='{{ params.sort }}' name='sort' />{% endif %}
         <input type='submit' value='search' />
 
     {% for param, choice_opts in choices.items %}
-    <h2>{{ choice_opts.title }}</h2>
-    {% if choice_opts.value %}
-        <input type='hidden' name='{{ param }}' value='{{ choice_opts.value }}' />
-    {% endif %}
-    <ul>
-        {% for choice in choice_opts.choices %}
-        <li>
-            {% if choice_opts.choices|length > 1 %}
-                <a href="{{ qstring }}&{{ param }}={{choice.1}}">{% firstof choice.0 "None" %}</a> ({{ choice.2 }})
+        {% if choice_opts.type == 'min_max' %}
+            <h2>{{ choice_opts.title }}</h2>
+            {% if choice_opts.max_value == choice_opts.min_value %}
+                {{ choice_opts.max_value }}
             {% else %}
-                {% firstof choice.0 "None" %} ({{ choice.2 }})
+                <div style='width: 90%; margin-left: auto; margin-right: auto;'>
+                    <div id='sparkline_{{param}}'></div>
+                    <div id='slider_{{param}}'></div>
+                    <div>
+                        <div style='width: 20%; text-align: left; float: left;'>
+                            <input name='{{param}}__gte' id='{{param}}__gte' value='{{ choice_opts.chosen_min }}' size=3 title='{{ choice_opts.min_value }}' />
+                        </div>
+                        <div style='width: 59%; text-align: center; float: left;'>
+                            (<span id='count_{{param}}' style='text-align: center;'>{{ page.paginator.count }}</span> documents)
+                        </div>
+                        <div style='width: 20%; text-align: right; float: left;'>
+                            <input name='{{param}}__lte' id='{{param}}__lte' value='{{ choice_opts.chosen_max }}' size=3 title='{{ choice_opts.max_value }}'/>
+                        </div>
+                        <div style='clear: both;'></div>
+                    </div>
+                </div>
+                <script type='text/javascript'>
+                    (function() {
+                    var counts = [{{ choice_opts.counts|join:", " }}];
+                    var vals = [{{ choice_opts.vals|join:", " }}];
+                    // remove '0' for sparkline display; it out-ranges all other values
+                    var sparkline_counts = [{{ choice_opts.counts|join:", " }}];
+                    sparkline_counts.splice(0, 1);
+                    $('#sparkline_{{param}}').sparkline(sparkline_counts, {width: '100%'});
+                    var update = function(event, ui) {
+                        if (ui.value == ui.values[0]) {
+                            $("#{{param}}__gte").val(ui.value).trigger('change');
+                        } else if (ui.value == ui.values[1]) {
+                            $("#{{param}}__lte").val(ui.value).trigger('change');
+                        }
+                        var count = 0;
+                        for (var i = 0; i < vals.length; i++) {
+                            if (vals[i] >= ui.values[0] && vals[i] <= ui.values[1]) {
+                                count += counts[i];
+                            }
+                        }
+                        $("#count_{{param}}").html(count);
+                    }
+                    $('#slider_{{param}}').slider({
+                        range: true,
+                        values: [{% if choice_opts.chosen_min %} {{ choice_opts.chosen_min }}{% else %}{{ choice_opts.min_value }}{% endif %}, 
+                                 {% if choice_opts.chosen_max %} {{ choice_opts.chosen_max }}{% else %}{{ choice_opts.max_value }}{% endif %}],
+                        max: {{ choice_opts.max_value }}, 
+                        min: {{ choice_opts.min_value }},
+                        change: update,
+                        slide: update
+                    });
+                    })();
+                </script>
             {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
-    {% endfor %}
-
-    {% for param, choice_opts in min_max_choices.items %}
-    <h2>{{ choice_opts.title }}</h2>
-    <div id='sparkline_{{param}}'></div>
-    <div id='slider_{{param}}'></div>
-    <div>
-        <div style='float: left;'>
-            <input name='{{param}}__gte' id='{{param}}__gte' value='{{ choice_opts.chosen_min }}' size=3 />
-            (min: {{ choice_opts.min_value }})
-        </div>
-        <div style='float: right;'>
-            (max: {{ choice_opts.max_value }})
-            <input name='{{param}}__lte' id='{{param}}__lte' value='{{ choice_opts.chosen_max }}' size=3 />
-        </div>
-        <div style='clear: both;'></div>
-    </div>
-    <script type='text/javascript'>
-        var vals = [{{choice_opts.counts|join:", "}}];
-        // remove '0' which out-ranges all other values
-        vals.splice(0, 1);
-        $('#sparkline_{{param}}').sparkline(vals, {width: '100%'});
-        var update = function(event, ui) {
-            var val = $(this).slider('option', 'values');
-            $("#{{param}}__gte").val(val[0]);
-            $("#{{param}}__lte").val(val[1]);
-        }
-        $('#slider_{{param}}').slider({
-            range: true,
-            values: [{% if choice_opts.chosen_min %} {{ choice_opts.chosen_min }}{% else %}{{ choice_opts.min_value }}{% endif %}, 
-                     {% if choice_opts.chosen_max %} {{ choice_opts.chosen_max }}{% else %}{{ choice_opts.max_value }}{% endif %}],
-            max: {{ choice_opts.max_value }}, 
-            min: {{ choice_opts.min_value }},
-            change: update,
-            slide: update
-        });
-    </script>
+        {% else %}
+            <h2>{{ choice_opts.title }}</h2>
+            {% if choice_opts.value %}
+                <input type='hidden' name='{{ param }}' value='{{ choice_opts.value }}' />
+            {% endif %}
+            <ul>
+                {% for choice in choice_opts.choices %}
+                <li>
+                    {% if choice_opts.choices|length > 1 %}
+                        <a href="{{ qstring }}&{{ param }}={{choice.1}}">{% firstof choice.0 "None" %}</a> ({{ choice.2 }})
+                    {% else %}
+                        {% firstof choice.0 "None" %} ({{ choice.2 }})
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
     {% endfor %}
     <p style='text-align: center;'>
         <input type='submit' value='Search' />
@@ -100,11 +121,10 @@
         {% endfor %}
         {% if not about %}
             <div class='sort'>Sort by:
-                <a href='{{ sort.date }}' class='sortdir'>{% if sort.date_asc %}&uarr;{% else %}{% if sort.date_desc %}&darr;{% endif %}{% endif %}</a>
-                <a href='{{ sort.date }}'>Date</a> 
-                | 
-                <a href='{{ sort.total_casualties }}' class='sortdir'>{% if sort.total_casualties_asc %}&uarr;{% else %}{% if sort.total_casualties_desc %}&darr;{% endif %}{% endif %}</a>
-                <a href='{{ sort.total_casualties }}'>Casualties</a>
+                {% for sort_opts in sort_links %}
+                    <a href='{{ sort_opts.link }}' class='sortdir'>{% if sort_opts.current %}{% if sort_opts.desc %}&darr;{% else %}&uarr;{% endif %}{% endif %}</a> <a href='{{ sort_opts.link }}'>{{ sort_opts.title }}</a>
+                    {% if not forloop.last %} | {% endif %}
+                {% endfor %}
             </div>
         {% endif %}
     </div>
@@ -120,4 +140,38 @@
         No results.
     {% endif %}{% endif %}
 </div>
+<script type='text/javascript'>
+    // from http://kyleschaeffer.com/best-practices/input-prompt-text/
+    (function(){
+      $('input[title]').each(function(i){
+        $(this).addClass('input-prompt-' + i);
+        var promptSpan = $('<span class="input-prompt"/>');
+        $(promptSpan).attr('id', 'input-prompt-' + i);
+        $(promptSpan).append($(this).attr('title'));
+        $(promptSpan).click(function(){
+          $(this).hide();
+          $('.' + $(this).attr('id')).focus();
+        });
+        if($(this).val() != ''){
+          $(promptSpan).hide();
+        }
+        $(this).before(promptSpan);
+        $(this).change(function(){
+          if ($(this).val() == '') {
+            $('#input-prompt-' + i).show();
+          } else {
+            $('#input-prompt-' + i).hide();
+          }
+        });
+        $(this).focus(function(){
+          $('#input-prompt-' + i).hide();
+        });
+        $(this).blur(function(){
+          if($(this).val() == ''){
+            $('#input-prompt-' + i).show();
+          }
+        });
+      });
+    })();
+</script>
 {% endblock %}
