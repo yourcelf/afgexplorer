@@ -66,6 +66,7 @@ http://wikileaks.org/wiki/Afghan_War_Diary,_2004-2010
 """
             return
 
+        phrases = defaultdict(set)
         with open(args[0]) as fh:
             reader = csv.reader(fh)
             for c, row in enumerate(reader):
@@ -73,12 +74,6 @@ http://wikileaks.org/wiki/Afghan_War_Diary,_2004-2010
                 for i in range(13, 22):
                     row[i] = int(row[i] or 0)
                 kwargs = dict(zip(fields, row))
-                try:
-                    DiaryEntry.objects.get(report_key=kwargs['report_key'])
-                    continue
-                except DiaryEntry.DoesNotExist:
-                    pass
-
                 kwargs['summary'] = clean_summary(kwargs['summary'])
                 kwargs['latitude'] = float(kwargs['latitude']) if kwargs['latitude'] else None
                 kwargs['longitude'] = float(kwargs['longitude']) if kwargs['longitude'] else None
@@ -91,12 +86,25 @@ http://wikileaks.org/wiki/Afghan_War_Diary,_2004-2010
                 words = summary.split(' ')
                 for i in range(3, 1, -1):
                     for j in range(i, len(words)):
-                        phrase, created = Phrase.objects.get_or_create(phrase=" ".join(words[j-i:j])[:255])
-                        entry.phrase_set.add(phrase)
-                
-        # dennormalize entry counts
+                        print entry.id
+                        phrases[" ".join(words[j-i:j])].add(entry.id)
+
+        n = len(phrases)
+        phrase_mappings = []
+        phrase_counts = []
+        for c, (phrase, entry_ids) in enumerate(phrases.iteritems()):
+            if len(entry_ids) > 1:
+                print c, n
+                phrase = Phrase.objects.create(phrase=phrase)
+                phrase_id = phrase.id
+                phrase_counts.append((len(entry_ids), phrase_id))
+                for entry_id in entry_ids:
+                    phrase_mappings.append((phrase_id, entry_id))
+
+        # Quickly as possible, update phrase mappings.
         cursor = connection.cursor()
-        cursor.execute("""
-UPDATE afg_phrase SET entry_count = (SELECT COUNT(pe.*) FROM afg_phrase_entries pe WHERE pe.phrase_id = afg_phrase.id);
-        """)
+        print 'phrase_entries...'
+        cursor.executemany("INSERT INTO afg_phrase_entries (phrase_id, diaryentry_id) VALUES (%s, %s)", phrase_mappings)
+        print 'phrase entry counts...'
+        cursor.executemany("""UPDATE afg_phrase SET entry_count=%s WHERE id=%s""", phrase_counts)
         transaction.commit_unless_managed()
