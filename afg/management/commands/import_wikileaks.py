@@ -17,18 +17,19 @@ def clean_summary(text):
     return text
 
 class Command(BaseCommand):
-    args = '<csv_file>'
+    args = '<csv_file> <release_name>'
     help = """Import the wikileaks Afghan War Diary CSV file."""
 
     def handle(self, *args, **kwargs):
-        if len(args) < 1:
-            print """Requires one argument: the path to the wikileaks Afghan War Diary CSV file.  It can be downloaded here:
+        if len(args) < 2:
+            print """Requires two arguments: the path to the wikileaks Afghan War Diary CSV file, and a string identifying this release (e.g. "2010 July 25").  The CSV file can be downloaded here:
 
 http://wikileaks.org/wiki/Afghan_War_Diary,_2004-2010
 
 """
             return
 
+        release = args[1]
         fields = [a[0] for a in import_fields]
         thru = lambda f: f
         conversions = []
@@ -47,6 +48,7 @@ http://wikileaks.org/wiki/Afghan_War_Diary,_2004-2010
                     print c
                 values = map(lambda t: conversions[t[0]](t[1]), enumerate(row))
                 kwargs = dict(zip(fields, values))
+                kwargs['release'] = release
                 entry = DiaryEntry.objects.create(**kwargs)
 
                 # Get words for phrases
@@ -62,22 +64,23 @@ http://wikileaks.org/wiki/Afghan_War_Diary,_2004-2010
 
         n = len(phrases)
         cursor = connection.cursor()
+        transaction.commit_unless_managed()
         # Drop the join reference constraint for efficiency.  We're confident
         # that the 4 million rows we're about to add all satisfy the
         # constraint, and it saves about 5 hours of computation time.
         cursor.execute('''ALTER TABLE "afg_phrase_entries" DROP CONSTRAINT "phrase_id_refs_id_48aa97f2"''')
-        transaction.commit_unless_managed()
         for c, (phrase, entry_ids) in enumerate(phrases.iteritems()):
+            if c % 10000 == 0:
+                transaction.commit_unless_managed()
+                print c, n
             if len(entry_ids) > 1 and len(entry_ids) <= 10:
-                if c % 1000 == 0:
-                    print c, n
                 cursor.execute("INSERT INTO afg_phrase (phrase, entry_count) VALUES (%s, %s) RETURNING id", (phrase, len(entry_ids)))
                 phrase_id = cursor.fetchone()[0]
-                cursor.execute("""
-                    INSERT INTO afg_phrase_entries (phrase_id, diaryentry_id) VALUES 
-                    """ + ",".join("(%s, %s)" % (phrase_id, entry_id) for entry_id in entry_ids)
-                )
-        transaction.commit_unless_managed()
+                phrase_entries = []
+                for entry_id in entry_ids:
+                    phrase_entries.append((phrase_id, entry_id))
+                cursor.executemany("""INSERT INTO afg_phrase_entries (phrase_id, diaryentry_id) VALUES (%s, %s)""", phrase_entries)
+
         cursor.execute('''ALTER TABLE "afg_phrase_entries" ADD CONSTRAINT "phrase_id_refs_id_48aa97f2" FOREIGN KEY ("phrase_id") REFERENCES "afg_phrase" ("id") DEFERRABLE INITIALLY DEFERRED;''')
         transaction.commit_unless_managed()
 

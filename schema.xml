@@ -192,6 +192,10 @@
 
     <field name="tracking_number" type="text" indexed="true" stored="true" multiValued="false" />
 
+    <field name="release" type="text" indexed="true" stored="true" multiValued="false" />
+
+    <field name="release_exact" type="string" indexed="true" stored="true" multiValued="false" />
+
     <field name="sigact" type="text" indexed="true" stored="true" multiValued="false" />
 
     <field name="sigact_exact" type="string" indexed="true" stored="true" multiValued="false" />

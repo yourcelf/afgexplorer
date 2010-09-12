@@ -54,6 +54,7 @@ import_fields = [
 ]
 # No DB indexes because we're kicking all that to SOLR.
 class DiaryEntry(models.Model):
+    release = models.CharField(max_length=255)
     report_key = models.CharField(max_length=255, unique=True)
     date = models.DateTimeField()
     type = models.CharField(max_length=255)
