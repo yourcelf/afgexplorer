@@ -5,7 +5,7 @@ import random
 import datetime
 from collections import defaultdict
 
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.utils.safestring import mark_safe
 from django.db import connection
 from django.core import paginator
@@ -282,11 +282,13 @@ def search(request, about=False, api=False):
         field = DiaryEntryIndex.fields[key]
         choice = None
         if isinstance(field, haystack.fields.CharField):
-            choice = {
-                'choices': sorted((k, k, c) for k, c in counts['fields'][key] if c > 0),
-                'type': 'text',
-                'value': params.get(key, ''),
-            }
+            facets = sorted((k, k, c) for k, c in counts['fields'][key] if c > 0)
+            if facets:
+                choice = {
+                    'choices': facets,
+                    'type': 'text',
+                    'value': params.get(key, ''),
+                }
         elif isinstance(field, haystack.fields.IntegerField):
             # Integer choices
             facets = sorted([(int(k), c) for k,c in counts['fields'][key] if c > 0])
@@ -314,15 +316,16 @@ def search(request, about=False, api=False):
                             vals.append(dt.strftime('%Y-%m-%d'))
                         except (TypeError, ValueError):
                             pass
-                choice = {
-                    'type': 'date',
-                    'counts': val_counts,
-                    'vals': vals,
-                    'min_value': vals[0],
-                    'max_value': vals[-1],
-                    'chosen_min': params.get(key + '__gte', ''),
-                    'chosen_max': params.get(key + '__lte', ''),
-                }
+                if vals:
+                    choice = {
+                        'type': 'date',
+                        'counts': val_counts,
+                        'vals': vals,
+                        'min_value': vals[0],
+                        'max_value': vals[-1],
+                        'chosen_min': params.get(key + '__gte', ''),
+                        'chosen_max': params.get(key + '__lte', ''),
+                    }
         if choice:
             choice['title'] = fix_constraint_name(key)
             choices[key] = choice
@@ -341,7 +344,6 @@ def search(request, about=False, api=False):
                 'title': fix_constraint_name(key)
             }
             params[key] = value
-    print constraints
 
     # Links to change sorting
     sort_links = []

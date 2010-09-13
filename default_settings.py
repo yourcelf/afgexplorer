@@ -78,7 +78,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'afgexplorer.urls'
+ROOT_URLCONF = 'urls'
 
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
@@ -99,6 +99,6 @@ INSTALLED_APPS = (
     'afg',
 )
 
-HAYSTACK_SITECONF = 'afgexplorer.search_sites'
+HAYSTACK_SITECONF = 'search_sites'
 HAYSTACK_SEARCH_ENGINE = 'solr'
 HAYSTACK_SOLR_URL = 'http://127.0.0.1:8983/solr'
