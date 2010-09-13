@@ -109,9 +109,9 @@ function displayText(tokens, div, popup_url, loading_text) {
         pop.offset(newOffset); // chrome/safari bug; have to do this twice
         var ids = [];
         $.each(this.className.split(' '), function(i, classname) {
-            var match = /key(\d+)/.exec(classname);
+            var match = /key(.+)/.exec(classname);
             if (match) {
-                ids.push(parseInt(match[1]));
+                ids.push(match[1]);
             }
         });
         

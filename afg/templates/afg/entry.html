@@ -195,13 +195,7 @@
 <script type='text/javascript'>
     // Load data
     var summary = "{{ entry.summary|escapejs }}";
-    var phrases = {{% for phrase, dest_ids in phrase_entries %}
-        "{{ phrase.phrase|escapejs }}": [
-            {% for dest_id in dest_ids %}{% if dest_id != entry.id %}
-                "{{ dest_id }}"{% if not forloop.last %},{% endif %}
-            {% endif %}{% endfor %}
-        ]{% if not forloop.last %},{% endif %}
-    {% endfor %}};
+    var phrases = {{ entry.phrase_links|safe }};
     var linkPhrases = {};
     for (var phrase in phrases) {
         for (var i = 0; i < phrases[phrase].length; i++) {

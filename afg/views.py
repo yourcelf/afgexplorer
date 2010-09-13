@@ -1,4 +1,5 @@
 import re
+import json
 import urllib
 import random
 import datetime
@@ -14,7 +15,7 @@ from haystack.query import SearchQuerySet
 from haystack.utils import Highlighter
 import haystack
 
-from afg.models import DiaryEntry, Phrase
+from afg.models import DiaryEntry
 from afg.search_indexes import DiaryEntryIndex
 from afg import utils
 
@@ -25,58 +26,20 @@ def show_entry(request, rid, template='afg/entry_page.html', api=False):
     try:
         entry = DiaryEntry.objects.get(report_key=rid)
     except DiaryEntry.DoesNotExist:
-        try:
-            entry = DiaryEntry.objects.get(id=int(rid))
-        except (ValueError, DiaryEntry.DoesNotExist):
-            raise Http404
-
-    phrases = Phrase.objects.filter(entry_count__gt=1, 
-            entry_count__lt=10, entries=entry)
-# Equivalent query without denormalization:
-#    phrases = list(Phrase.objects.raw("""
-#            SELECT sub.* FROM
-#                (SELECT p.id, p.phrase, COUNT(pe2.diaryentry_id) AS entry_count FROM 
-#                afg_phrase_entries pe2, afg_phrase p 
-#                INNER JOIN afg_phrase_entries pe1 ON pe1.phrase_id = p.id  
-#                WHERE pe1.diaryentry_id=%s AND p.id=pe2.phrase_id
-#                GROUP BY p.phrase, p.id) AS sub
-#            WHERE entry_count > 1 AND entry_count < 10;
-#        """, [entry.id]))
-
-    phrase_ids = [p.id for p in phrases]
-
-    dest_ids = defaultdict(list)
-    if phrase_ids:
-        cursor = connection.cursor()
-        # Using modulus not params here because we need to do funky literalizing of
-        # the table
-        cursor.execute("""
-            SELECT pe.phrase_id, d.id FROM afg_phrase_entries pe 
-            INNER JOIN afg_diaryentry d ON pe.diaryentry_id=d.id
-            WHERE pe.phrase_id IN (SELECT * FROM (VALUES %s) AS phrase_id_set);
-            """ % (",".join("(%s)" % i for i in phrase_ids)))
-        for row in cursor.fetchall():
-            dest_ids[int(row[0])].append(row[1])
-
-    phrase_entries = [(phrase, dest_ids[phrase.id]) for phrase in phrases]
+        raise Http404
 
     if api:
         return utils.render_json(request, {
                 'entry': entry.to_dict(),
-                'phrase_entries': [{
-                        'phrase': p.phrase, 
-                        'entry_ids': ids,
-                     } for p, ids in phrase_entries],
             })
 
     return utils.render_request(request, template, {
         'entry': entry,
-        'phrase_entries': phrase_entries,
     })
 
 def entry_popup(request):
     try:
-        rids = [int(r) for r in request.GET.get('rids').split(',')]
+        rids = [r for r in request.GET.get('rids').split(',')]
         clicked = request.GET.get('clicked')
         join_to = request.GET.get('entry')
         texts = [urllib.unquote(t) for t in request.GET.get('texts').split(',')]

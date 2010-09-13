@@ -16,7 +16,7 @@ def force_int(a):
 def float_or_null(f):
     if f:
         return float(f)
-    return None
+    return "NULL"
 
 import_fields = [
     ("report_key",),       # 0
@@ -28,7 +28,7 @@ import_fields = [
     ("summary", clean_summary),          # 6
     ("region",),           # 7 
     ("attack_on",),        # 8
-    ("complex_attack",),   # 9 
+    ("complex_attack", lambda f: bool(f)),   # 9 
     ("reporting_unit",),   # 10
     ("unit_name",),        # 11
     ("type_of_unit",),     # 12 
@@ -46,7 +46,7 @@ import_fields = [
     ("longitude", float_or_null),        # 24
     ("originator_group",), # 25
     ("updated_by_group",), # 26
-    ("ccir",),             # 27
+    ("ccir", lambda f: f or ""),             # 27
     ("sigact",),           # 28
     ("affiliation",),      # 29
     ("dcolor",),           # 30
@@ -55,7 +55,7 @@ import_fields = [
 # No DB indexes because we're kicking all that to SOLR.
 class DiaryEntry(models.Model):
     release = models.CharField(max_length=255)
-    report_key = models.CharField(max_length=255, unique=True)
+    report_key = models.CharField(max_length=255, primary_key=True)
     date = models.DateTimeField()
     type = models.CharField(max_length=255)
     category = models.CharField(max_length=255)
@@ -82,11 +82,13 @@ class DiaryEntry(models.Model):
     longitude = models.FloatField(blank=True, null=True)
     originator_group = models.CharField(max_length=255)
     updated_by_group = models.CharField(max_length=255)
-    ccir = models.CharField(max_length=255)
+    ccir = models.CharField(max_length=255, default="")
     sigact = models.CharField(max_length=255)
     affiliation = models.CharField(max_length=255)
     dcolor = models.CharField(max_length=255)
     classification = models.CharField(max_length=255)
+
+    phrase_links = models.TextField(blank=True, default="")
 
     def total_casualties(self):
         return self.friendly_wia + self.friendly_kia + self.host_nation_wia + self.host_nation_kia + self.civilian_wia + self.civilian_kia + self.enemy_wia + self.enemy_kia
@@ -103,13 +105,3 @@ class DiaryEntry(models.Model):
     class Meta:
         ordering = ['date']
         verbose_name_plural = 'Diary entries'
-
-class Phrase(models.Model):
-    phrase = models.CharField(max_length=255, unique=True, db_index=True)
-    entries = models.ManyToManyField(DiaryEntry)
-
-    # denormalization for performance
-    entry_count = models.IntegerField(default=0, db_index=True)
-
-    def __unicode__(self):
-        return self.phrase
