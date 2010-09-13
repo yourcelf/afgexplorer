@@ -196,6 +196,14 @@
     // Load data
     var summary = "{{ entry.summary|escapejs }}";
     var phrases = {{ entry.phrase_links|safe }};
+    var pk = "{{ entry.pk }}";
+    // Remove ourselves from link lists.
+    for (var phrase in phrases) {
+        var idx = phrases[phrase].indexOf(pk);
+        if (idx != -1) {
+            phrases[phrase].splice(idx, 1);
+        }
+    }
     var linkPhrases = {};
     for (var phrase in phrases) {
         for (var i = 0; i < phrases[phrase].length; i++) {

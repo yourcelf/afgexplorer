@@ -196,41 +196,53 @@ def search(request, about=False, api=False):
 
     # Narrow query set by given date facets
     for key, field in date_fields.iteritems():
-        date = request.GET.get(key, '')
-        if date:
+        start_str = request.GET.get(key + '__gte', '')
+        end_str = request.GET.get(key + '__lte', '')
+        start = None
+        end = None
+        if start_str:
             try:
-                year, month, day = [int(d) for d in (date + "-0-0").split("-")[0:3]]
-                if year > 3000 or month > 12 or day > 31:
-                    raise ValueError
+                start = datetime.datetime(*[int(a) for a in (start_str + '-1-1').split('-')[0:3]])
             except ValueError:
-                year, month, day = 0, 0, 0
-        else:
+                start = None
+        if end_str:
+            try:
+                end = datetime.datetime(*[int(a) for a in ((end_str + '-1-1').split('-')[0:3])]) - \
+                        datetime.timedelta(seconds=1)
+            except ValueError:
+                end = None
+        if not start and not end:
             # Legacy date format 
             day = int(request.GET.get(key + '__day', 0))
             month = int(request.GET.get(key + '__month', 0))
             year = int(request.GET.get(key + '__year', 0))
-        if year:
-            if not month:
-                start = datetime.datetime(year, 1, 1)
-                end = datetime.datetime(year + 1, 1, 1) - datetime.timedelta(seconds=1)
-                params[key] = start.strftime("%Y")
-                sqs = sqs.date_facet(key, start, end, 'month')
-            elif not day:
-                start = datetime.datetime(year, month, 1)
-                next_month = datetime.datetime(year, month, 1) + datetime.timedelta(days=31)
-                end = datetime.datetime(next_month.year, next_month.month, 1) - datetime.timedelta(seconds=1)
-                params[key] = start.strftime("%Y-%m")
-                sqs = sqs.date_facet(key, start, end, 'day')
-            else:
-                start = datetime.datetime(year, month, day)
-                end = datetime.datetime(year, month, day + 1) - datetime.timedelta(seconds=1)
-                params[key] = start.strftime("%Y-%m-%d")
-                sqs = sqs.date_facet('date', start, end, 'day')
-            sqs = sqs.narrow("%s:[%s TO %s]" % (key, start.isoformat() + "Z", end.isoformat() + "Z"))
+            if year:
+                if month:
+                    if day:
+                        start = datetime.datetime(year, month, day)
+                        end = start + datetime.timedelta(days=1) - datetime.timedelta(seconds=1)
+                    else:
+                        start = datetime.datetime(year, month, 1)
+                        next_month = start + datetime.timedelta(days=31)
+                        end = datetime.datetime(next_month.year, next_month.month, 1) - datetime.timedelta(seconds=1)
+                else:
+                    start = datetime.datetime(year, 1, 1)
+                    end = datetime.datetime(year + 1, 1, 1) - datetime.timedelta(seconds=1)
+        if start:
+            sqs = sqs.narrow("%s:[%s TO *]" % (key, start.isoformat() + 'Z'))
+            params[key + '__gte'] = start.strftime("%Y-%m-%d")
         else:
             start = DiaryEntryIndex.min_date
+        if end:
+            sqs = sqs.narrow("%s:[* TO %s]" % (key, end.isoformat() + 'Z'))
+            params[key + '__lte'] = end.strftime("%Y-%m-%d")
+        else:
             end = DiaryEntryIndex.max_date
-            sqs = sqs.date_facet(key, start, end, 'year')
+
+        if (end - start).days > 365:
+            sqs = sqs.date_facet(key, start, end, 'month')
+        else:
+            sqs = sqs.date_facet(key, start, end, 'day')
 
     # sorting
     sort = request.GET.get('sort', '')
@@ -264,71 +276,72 @@ def search(request, about=False, api=False):
         entries.append((entry, excerpt))
 
     # Choices
-    total_count = sqs.count()
     counts = sqs.facet_counts()
     choices = utils.OrderedDict()
     for key in DiaryEntryIndex.search_facet_display:
         field = DiaryEntryIndex.fields[key]
-        choice = {
-            'title': fix_constraint_name(key),
-            'value': params.get(key, '')
-        }
+        choice = None
         if isinstance(field, haystack.fields.CharField):
-            choice['choices'] = sorted((k, k, c) for k, c in counts['fields'][key] if c > 0)
-            choice['type'] = 'text'
-        elif isinstance(field, haystack.fields.DateTimeField):
-            choice['type'] = 'date'
-            date_facets = []
-            for d,c in sorted(counts['dates'][key].iteritems()):
-                try:
-                    # magic method to parse ISO date format.
-                    dt = datetime.datetime(*map(int, re.split('[^\d]', d)[:-1]))
-                    if c > 0:
-                        date_facets.append((dt, c))
-                except (TypeError, ValueError):
-                    pass
-
-            year, month, day = (params.get(key, '') + "--").split("-")[0:3]
-            if year:
-                if month:
-                    if day: 
-                        d = datetime.date(int(year), int(month), int(day))
-                        choice['choices'] = [(d.strftime("%Y %B %e"), d.strftime("%Y-%m-%d"), total_count)]
-                    else:
-                        choice['choices'] = [(d.strftime("%B %e"), d.strftime("%Y-%m-%d"), c) for d, c in date_facets]
-                else:
-                    choice['choices'] = [(d.strftime("%B"), d.strftime("%Y-%m"), c) for d, c in date_facets]
-            else:
-                choice['choices'] = [(d.year, d.year, c) for d, c in date_facets]
+            choice = {
+                'choices': sorted((k, k, c) for k, c in counts['fields'][key] if c > 0),
+                'type': 'text',
+                'value': params.get(key, ''),
+            }
         elif isinstance(field, haystack.fields.IntegerField):
             # Integer choices
-            facets = sorted([(int(k), v) for k,v in counts['fields'][key] if v > 0])
+            facets = sorted([(int(k), c) for k,c in counts['fields'][key] if c > 0])
             if facets:
-                choice.update({
+                choice = {
                     'type': 'min_max',
-                    'counts': [v for k,v in facets],
-                    'vals': [k for k,v in facets],
+                    'counts': [c for k,c in facets],
+                    'vals': [k for k,c in facets],
                     'min_value': facets[0][0],
                     'max_value': facets[-1][0],
                     'chosen_min': params.get(key + '__gte', ''),
                     'chosen_max': params.get(key + '__lte', ''),
-                })
-        choices[key] = choice
+                }
+        elif isinstance(field, haystack.fields.DateTimeField):
+            facets = sorted(counts['dates'][key].iteritems())
+            if facets:
+                val_counts = []
+                vals = []
+                for d,c in facets:
+                    if c > 0:
+                        try:
+                            # magic method to parse ISO date format.
+                            dt = datetime.datetime(*map(int, re.split('[^\d]', d)[:-1]))
+                            val_counts.append(c)
+                            vals.append(dt.strftime('%Y-%m-%d'))
+                        except (TypeError, ValueError):
+                            pass
+                choice = {
+                    'type': 'date',
+                    'counts': val_counts,
+                    'vals': vals,
+                    'min_value': vals[0],
+                    'max_value': vals[-1],
+                    'chosen_min': params.get(key + '__gte', ''),
+                    'chosen_max': params.get(key + '__lte', ''),
+                }
+        if choice:
+            choice['title'] = fix_constraint_name(key)
+            choices[key] = choice
 
     search_url = reverse('afg.search')
 
     # Links to remove constraints
     constraints = {}
     exclude = set(('sort',))
-    for field in params.keys():
-        if field not in exclude:
-            value = params.pop(field)
-            constraints[field] = {
+    for key in params.keys():
+        if key not in exclude:
+            value = params.pop(key)
+            constraints[key] = {
                 'value': value,
                 'removelink': "%s?%s" % (search_url, urllib.urlencode(params)),
-                'title': fix_constraint_name(field)
+                'title': fix_constraint_name(key)
             }
-            params[field] = value
+            params[key] = value
+    print constraints
 
     # Links to change sorting
     sort_links = []
@@ -393,11 +406,11 @@ def search(request, about=False, api=False):
         'sort_links': sort_links,
     })
 
-def fix_constraint_name(field):
-    field = field.replace('_', ' ')
-    field = field.replace('wia', 'wounded')
-    field = field.replace('kia', 'killed')
-    field = field.replace('gte', ' - more than')
-    field = field.replace('lte', ' - less than')
-    field = field.replace('icontains', 'contains')
-    return field[0].upper() + field[1:]
+def fix_constraint_name(name):
+    name = name.replace('_', ' ')
+    name = name.replace('wia', 'wounded')
+    name = name.replace('kia', 'killed')
+    name = name.replace('gte', ' - more than')
+    name = name.replace('lte', ' - less than')
+    name = name.replace('icontains', 'contains')
+    return name[0].upper() + name[1:]

@@ -10,7 +10,7 @@
             inputs.each(function() {
                 var el = $(this);
                 var val = $(this).val();
-                if (val === '' || (val === '0' && /.*gte/.test(el.name))) {
+                if (val === '' || (val === '0' && /.*gte/.test(el.attr('name')))) {
                     $(this).remove();
                 }
             });
@@ -23,7 +23,7 @@
         <input type='submit' value='search' />
 
     {% for param, choice_opts in choices.items %}
-        {% if choice_opts.type == 'min_max' %}
+        {% if choice_opts.type == 'min_max' or choice_opts.type == 'date' %}
             <h2>{{ choice_opts.title }}</h2>
             {% if choice_opts.max_value == choice_opts.min_value %}
                 {{ choice_opts.max_value }}
@@ -32,35 +32,40 @@
                     <div id='sparkline_{{param}}'></div>
                     <div id='slider_{{param}}'></div>
                     <div>
-                        <div style='width: 20%; text-align: left; float: left;'>
-                            <input name='{{param}}__gte' id='{{param}}__gte' value='{{ choice_opts.chosen_min }}' size=3 title='{{ choice_opts.min_value }}' />
+                        <div>
+                            Between
+                            <input name='{{param}}__gte' id='{{param}}__gte' value='{{ choice_opts.chosen_min }}' title='{{ choice_opts.min_value }}' style='width: 70px;' />
+                            and
+                            <input name='{{param}}__lte' id='{{param}}__lte' value='{{ choice_opts.chosen_max }}' style='width: 70px;' title='{{ choice_opts.max_value }}'/>
                         </div>
-                        <div style='width: 59%; text-align: center; float: left;'>
+                        <div style='text-align: center'>
                             (<span id='count_{{param}}' style='text-align: center;'>{{ page.paginator.count }}</span> documents)
                         </div>
-                        <div style='width: 20%; text-align: right; float: left;'>
-                            <input name='{{param}}__lte' id='{{param}}__lte' value='{{ choice_opts.chosen_max }}' size=3 title='{{ choice_opts.max_value }}'/>
-                        </div>
-                        <div style='clear: both;'></div>
                     </div>
                 </div>
                 <script type='text/javascript'>
                     (function() {
                     var counts = [{{ choice_opts.counts|join:", " }}];
-                    var vals = [{{ choice_opts.vals|join:", " }}];
+                    var vals = ["{{ choice_opts.vals|join:"\", \"" }}"];
+                    for (var i = 0; i < vals.length; i++) {
+                        if ("" + parseInt(vals[i]) == vals[i]) {
+                            vals[i] = parseInt(vals[i]);
+                        }
+                    }
                     // remove '0' for sparkline display; it out-ranges all other values
                     var sparkline_counts = [{{ choice_opts.counts|join:", " }}];
                     sparkline_counts.splice(0, 1);
                     $('#sparkline_{{param}}').sparkline(sparkline_counts, {width: '100%'});
                     var update = function(event, ui) {
+                        var actualValues = [vals[ui.values[0]], vals[ui.values[1]]];
                         if (ui.value == ui.values[0]) {
-                            $("#{{param}}__gte").val(ui.value).trigger('change');
+                            $("#{{param}}__gte").val(actualValues[0]).trigger('change');
                         } else if (ui.value == ui.values[1]) {
-                            $("#{{param}}__lte").val(ui.value).trigger('change');
+                            $("#{{param}}__lte").val(actualValues[1]).trigger('change');
                         }
                         var count = 0;
                         for (var i = 0; i < vals.length; i++) {
-                            if (vals[i] >= ui.values[0] && vals[i] <= ui.values[1]) {
+                            if (vals[i] >= actualValues[0] && vals[i] <= actualValues[1]) {
                                 count += counts[i];
                             }
                         }
@@ -68,10 +73,9 @@
                     }
                     $('#slider_{{param}}').slider({
                         range: true,
-                        values: [{% if choice_opts.chosen_min %} {{ choice_opts.chosen_min }}{% else %}{{ choice_opts.min_value }}{% endif %}, 
-                                 {% if choice_opts.chosen_max %} {{ choice_opts.chosen_max }}{% else %}{{ choice_opts.max_value }}{% endif %}],
-                        max: {{ choice_opts.max_value }}, 
-                        min: {{ choice_opts.min_value }},
+                        values: [0, vals.length - 1],
+                        max: vals.length - 1, 
+                        min: 0,
                         change: update,
                         slide: update
                     });
@@ -156,6 +160,13 @@
           $(promptSpan).hide();
         }
         $(this).before(promptSpan);
+        $(promptSpan).each(function(i){
+          var pos = $(this).position();
+          $(this).css({
+              left: pos.left + 'px',
+              top: pos.top + 'px'
+          });
+        });
         $(this).change(function(){
           if ($(this).val() == '') {
             $('#input-prompt-' + i).show();
