@@ -26,10 +26,12 @@
         {% if choice_opts.type == 'min_max' or choice_opts.type == 'date' %}
             <h2>{{ choice_opts.title }}</h2>
             {% if choice_opts.max_value == choice_opts.min_value %}
+                <input type='hidden' name='{{param}}__gte' value='{{ choice_opts.chosen_min }}' />
+                <input type='hidden' name='{{param}}__lte' value='{{ choice_opts.chosen_max }}' />
                 {{ choice_opts.max_value }}
             {% else %}
                 <div style='width: 90%; margin-left: auto; margin-right: auto;'>
-                    <div id='sparkline_{{param}}'></div>
+                    <div id='sparkline_{{param}}' class='sparkline'></div>
                     <div id='slider_{{param}}'></div>
                     <div>
                         <div>
@@ -100,9 +102,11 @@
             </ul>
         {% endif %}
     {% endfor %}
-    <p style='text-align: center;'>
-        <input type='submit' value='Search' />
-    </p>
+    {% if entries %}
+        <p style='text-align: center;'>
+            <input type='submit' value='Search' />
+        </p>
+    {% endif %}
     </form>
     <hr>
     <ul>
@@ -110,28 +114,35 @@
     </ul>
     <br />
 </div>
-<div class='results'>
-    <div class='constraints'>
-        Searching for: 
-        {% if not constraints %}
-            {% if about %}
-                Truth
-            {% else %}
-                everything
-            {% endif %}
+<div class='main'>
+<div class='constraints'>
+    <div style='float: left; margin-right: 1em'>
+    Searching for: 
+    {% if not constraints %}
+        {% if about %}
+            Truth
+        {% else %}
+            everything
         {% endif %}
-        {% for param, value in constraints.items %}
-        <span class='constraint'>{{ value.title }}: {{ value.value }} <a href='{{ value.removelink }}'>(X)</a></span>
-        {% endfor %}
-        {% if not about %}
-            <div class='sort'>Sort by:
-                {% for sort_opts in sort_links %}
-                    <a href='{{ sort_opts.link }}' class='sortdir'>{% if sort_opts.current %}{% if sort_opts.desc %}&darr;{% else %}&uarr;{% endif %}{% endif %}</a> <a href='{{ sort_opts.link }}'>{{ sort_opts.title }}</a>
-                    {% if not forloop.last %} | {% endif %}
-                {% endfor %}
-            </div>
-        {% endif %}
+    {% endif %}
     </div>
+    {% for param, value in constraints.items %}
+    <div class='constraint' style='display: block; float: left;'>
+        <span style='float: left; margin-right: 0.3em;'>{{ value.title }}: {{ value.value }}</span> 
+        <a href='{{ value.removelink }}' style='float: left;' title='Click to remove this constraint'><span class='ui-icon ui-icon-circle-close'></span></a>
+    </div>
+    {% endfor %}
+    {% if not about %}
+        <div class='sort'>Sort by:
+            {% for sort_opts in sort_links %}
+                <a href='{{ sort_opts.link }}' class='sortdir'>{% if sort_opts.current %}{% if sort_opts.desc %}&darr;{% else %}&uarr;{% endif %}{% endif %}</a> <a href='{{ sort_opts.link }}'>{{ sort_opts.title }}</a>
+                {% if not forloop.last %} | {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+    <div style='clear: both;'></div>
+</div>
+<div class='results'>
     {% if about %}
         {% include "about.html" %}
     {% else %}{% if entries %}
@@ -144,6 +155,7 @@
         No results.
     {% endif %}{% endif %}
 </div>
+</div> <!-- /main -->
 <script type='text/javascript'>
     // from http://kyleschaeffer.com/best-practices/input-prompt-text/
     (function(){

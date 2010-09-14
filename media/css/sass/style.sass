@@ -1,12 +1,14 @@
 @import "blueprint"
 @import "compass/utilities/general/clearfix"
 @import "compass/reset"
+@import "compass/css3/border-radius"
 
 body
   font-family: "helvetica neue", arial, helvetica, sans-serif 
   font-size: 10pt
   line-height: 1.5em
-  margin: 1em
+  text-align: left
+  width: 950px
 
 h1, h2, h3, h4, h5, h6
   font-family: cambria, georgia, times, "times new roman", serif
@@ -50,6 +52,10 @@ table
 acronym, .toggle-acronyms
   color: #800
   //border-top: 1px dotted #800
+
+.logo
+  h1, h2
+    font-family: cambria, georgia, times, "times new roman", serif
 
 .links
   border-bottom: 1px solid #efe
@@ -127,35 +133,47 @@ acronym, .toggle-acronyms
   +container
 
 .sidebar
-  float: left
-  margin-right: 1em
   background-color: #eee
-  +column(7)
+  +column(7, true)
+  padding: 1em
+  h2
+    font-family: sans-serif
+    font-size: 1em
+    font-weight: bold
+  li
+    list-style-type: none
+    
 
 .about
   margin-top: 3em
-  width: 649px
-  +column(17, true)
+
 .main
-  //float: left
-  width: 649px
-  +column(17, true)
-  
+  +column(16, true)
   
 .constraints
   background-color: #eee
   padding: 1em
   .constraint
+    margin-bottom: 0.1em
+    +border-radius(5px, 5px)
     background-color: #fa3
     padding: 0.2em
     margin-right: 1em
+    a, a:visited
+      +border-radius(15px, 15px)
+      text-decoration: none
+      padding: 0.2em
   .sort
     float: right
     a.sortdir, a.sortdir:visited
       text-decoration: none
+.results, .summary
+  padding: 1em
 
 .input-prompt
   position: absolute
   color: #aaa
   margin: 0.2em 0 0 0.5em
 
+.sparkline 
+  margin-bottom: -7px

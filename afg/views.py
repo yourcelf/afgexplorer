@@ -174,22 +174,22 @@ def search(request, about=False, api=False):
                     continue
                 elif isinstance(field, haystack.fields.IntegerField):
                     try:
-                        val = int(val)
+                        clean_val = int(val)
                     except ValueError:
                         continue
                 elif isinstance(field, haystack.fields.FloatField):
                     try:
-                        val = float(val)
+                        clean_val = float(val)
                     except ValueError:
                         continue
                 else:
-                    val = sqs.query.clean(val)
+                    clean_val = sqs.query.clean(val)
                 if lookup == 'exact':
-                    sqs = sqs.narrow(u'%s:"%s"' % (field.index_fieldname, val))
+                    sqs = sqs.narrow(u'%s:"%s"' % (field.index_fieldname + "_exact", clean_val))
                 elif lookup == 'gte':
-                    sqs = sqs.narrow(u"%s:[%s TO *]" % (field.index_fieldname, val))
+                    sqs = sqs.narrow(u"%s:[%s TO *]" % (field.index_fieldname, clean_val))
                 elif lookup == 'lte':
-                    sqs = sqs.narrow(u"%s:[* TO %s]" % (field.index_fieldname, val))
+                    sqs = sqs.narrow(u"%s:[* TO %s]" % (field.index_fieldname, clean_val))
                 else:
                     continue
                 params[key] = val
@@ -212,7 +212,7 @@ def search(request, about=False, api=False):
             except ValueError:
                 end = None
         if not start and not end:
-            # Legacy date format 
+            # Legacy (deprecated) date format -- here to preserve old URLs
             day = int(request.GET.get(key + '__day', 0))
             month = int(request.GET.get(key + '__month', 0))
             year = int(request.GET.get(key + '__year', 0))
@@ -220,14 +220,14 @@ def search(request, about=False, api=False):
                 if month:
                     if day:
                         start = datetime.datetime(year, month, day)
-                        end = start + datetime.timedelta(days=1) - datetime.timedelta(seconds=1)
+                        end = start + datetime.timedelta(days=1)
                     else:
                         start = datetime.datetime(year, month, 1)
                         next_month = start + datetime.timedelta(days=31)
-                        end = datetime.datetime(next_month.year, next_month.month, 1) - datetime.timedelta(seconds=1)
+                        end = datetime.datetime(next_month.year, next_month.month, 1)
                 else:
                     start = datetime.datetime(year, 1, 1)
-                    end = datetime.datetime(year + 1, 1, 1) - datetime.timedelta(seconds=1)
+                    end = datetime.datetime(year + 1, 1, 1)
         if start:
             sqs = sqs.narrow("%s:[%s TO *]" % (key, start.isoformat() + 'Z'))
             params[key + '__gte'] = start.strftime("%Y-%m-%d")
@@ -239,10 +239,9 @@ def search(request, about=False, api=False):
         else:
             end = DiaryEntryIndex.max_date
 
-        if (end - start).days > 365:
-            sqs = sqs.date_facet(key, start, end, 'month')
-        else:
-            sqs = sqs.date_facet(key, start, end, 'day')
+        span = max(1, (end - start).days)
+        gap = max(1, int(span / 100)) # target 100 facets
+        sqs = sqs.date_facet(key, start, end - datetime.timedelta(seconds=1), 'day', gap)
 
     # sorting
     sort = request.GET.get('sort', '')
@@ -303,20 +302,23 @@ def search(request, about=False, api=False):
                     'chosen_max': params.get(key + '__lte', ''),
                 }
         elif isinstance(field, haystack.fields.DateTimeField):
-            facets = sorted(counts['dates'][key].iteritems())
+            facets = sorted(counts['dates'].get(key, {}).iteritems())
             if facets:
                 val_counts = []
                 vals = []
                 for d,c in facets:
                     if c > 0:
                         try:
-                            # magic method to parse ISO date format.
-                            dt = datetime.datetime(*map(int, re.split('[^\d]', d)[:-1]))
+                            dt = _iso_to_datetime(d)
                             val_counts.append(c)
                             vals.append(dt.strftime('%Y-%m-%d'))
                         except (TypeError, ValueError):
                             pass
                 if vals:
+                    max_value = min(_iso_to_datetime(counts['dates'][key]['end']),
+                        DiaryEntryIndex.max_date)
+                    vals.append(max_value.strftime('%Y-%m-%d'))
+                    val_counts.append(0)
                     choice = {
                         'type': 'date',
                         'counts': val_counts,
@@ -367,7 +369,7 @@ def search(request, about=False, api=False):
     if api:
         remapped_choices = {}
         for choice, opts in choices.iteritems():
-            if opts['type'] == 'min_max':
+            if opts['type'] in ('min_max', 'date'):
                 remapped_choices[choice] = opts
             else:
                 remapped_choices[choice] = {
@@ -407,6 +409,9 @@ def search(request, about=False, api=False):
         'constraints': constraints,
         'sort_links': sort_links,
     })
+
+def _iso_to_datetime(iso_date_str):
+    return datetime.datetime(*map(int, re.split('[^\d]', iso_date_str)[:-1]))
 
 def fix_constraint_name(name):
     name = name.replace('_', ' ')

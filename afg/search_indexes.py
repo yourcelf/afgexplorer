@@ -40,7 +40,7 @@ class DiaryEntryIndex(indexes.SearchIndex):
     classification = indexes.CharField(model_attr='classification', faceted=True)
     total_casualties = indexes.IntegerField(model_attr='total_casualties', faceted=True)
 
-    search_facet_display = ('release', 'date', 'type_', 'region', 'attack_on', 'type_of_unit', 'affiliation', 'dcolor', 'classification', 'category', 'total_casualties', 'civilian_kia', 'civilian_wia', 'host_nation_kia', 'host_nation_wia', 'friendly_kia', 'friendly_wia', 'enemy_kia', 'enemy_wia', 'enemy_detained')
+    search_facet_display = ('date', 'type_', 'region', 'attack_on', 'type_of_unit', 'affiliation', 'dcolor', 'classification', 'category', 'total_casualties', 'civilian_kia', 'civilian_wia', 'host_nation_kia', 'host_nation_wia', 'friendly_kia', 'friendly_wia', 'enemy_kia', 'enemy_wia', 'enemy_detained')
     offer_to_sort_by = (('Date', 'date'), ('Casualties', 'total_casualties')) # (display, field) pairs
 
     min_date = datetime.datetime(2004, 1, 1, 0, 0, 0)
