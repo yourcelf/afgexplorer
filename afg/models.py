@@ -1,4 +1,5 @@
 import re
+import json
 import datetime
 
 from django.db import models
@@ -100,6 +101,7 @@ class DiaryEntry(models.Model):
         obj = {}
         for field in self._meta.fields:
             obj[field.name] = unicode(getattr(self, field.name))
+        obj['phrase_links'] = json.loads(self.phrase_links)
         return obj
 
     class Meta:

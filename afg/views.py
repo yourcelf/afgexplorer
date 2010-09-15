@@ -5,7 +5,7 @@ import random
 import datetime
 from collections import defaultdict
 
-from django.http import Http404, HttpResponse
+from django.http import Http404
 from django.utils.safestring import mark_safe
 from django.db import connection
 from django.core import paginator
@@ -242,6 +242,7 @@ def search(request, about=False, api=False):
         span = max(1, (end - start).days)
         gap = max(1, int(span / 100)) # target 100 facets
         sqs = sqs.date_facet(key, start, end - datetime.timedelta(seconds=1), 'day', gap)
+        #sqs = sqs.raw_params('f.%s_exact.facet.date.hardend': True})
 
     # sorting
     sort = request.GET.get('sort', '')
@@ -315,10 +316,10 @@ def search(request, about=False, api=False):
                         except (TypeError, ValueError):
                             pass
                 if vals:
-                    max_value = min(_iso_to_datetime(counts['dates'][key]['end']),
-                        DiaryEntryIndex.max_date)
-                    vals.append(max_value.strftime('%Y-%m-%d'))
-                    val_counts.append(0)
+                    #max_value = min(_iso_to_datetime(counts['dates'][key]['end']),
+                    #    DiaryEntryIndex.max_date)
+                    #vals.append(max_value.strftime('%Y-%m-%d'))
+                    #val_counts.append(0)
                     choice = {
                         'type': 'date',
                         'counts': val_counts,
