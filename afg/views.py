@@ -207,8 +207,7 @@ def search(request, about=False, api=False):
                 start = None
         if end_str:
             try:
-                end = datetime.datetime(*[int(a) for a in ((end_str + '-1-1').split('-')[0:3])]) - \
-                        datetime.timedelta(seconds=1)
+                end = datetime.datetime(*[int(a) for a in ((end_str + '-1-1').split('-')[0:3])])
             except ValueError:
                 end = None
         if not start and not end:
@@ -241,8 +240,7 @@ def search(request, about=False, api=False):
 
         span = max(1, (end - start).days)
         gap = max(1, int(span / 100)) # target 100 facets
-        sqs = sqs.date_facet(key, start, end - datetime.timedelta(seconds=1), 'day', gap)
-        #sqs = sqs.raw_params('f.%s_exact.facet.date.hardend': True})
+        sqs = sqs.date_facet(key, start, end, 'day', gap)
 
     # sorting
     sort = request.GET.get('sort', '')
@@ -307,19 +305,25 @@ def search(request, about=False, api=False):
             if facets:
                 val_counts = []
                 vals = []
+                last_dt = None
                 for d,c in facets:
                     if c > 0:
                         try:
-                            dt = _iso_to_datetime(d)
+                            last_dt = _iso_to_datetime(d)
                             val_counts.append(c)
-                            vals.append(dt.strftime('%Y-%m-%d'))
+                            vals.append(last_dt.strftime('%Y-%m-%d'))
                         except (TypeError, ValueError):
                             pass
-                if vals:
-                    #max_value = min(_iso_to_datetime(counts['dates'][key]['end']),
-                    #    DiaryEntryIndex.max_date)
-                    #vals.append(max_value.strftime('%Y-%m-%d'))
-                    #val_counts.append(0)
+                if vals and last_dt:
+                    max_value = min(
+                        _iso_to_datetime(counts['dates'][key]['end']),
+                        DiaryEntryIndex.max_date,
+                        last_dt + datetime.timedelta(
+                            days=int(re.sub('[^\d]', '', counts['dates'][key]['gap']))
+                        )
+                    )
+                    vals.append(max_value.strftime('%Y-%m-%d'))
+                    val_counts.append(0)
                     choice = {
                         'type': 'date',
                         'counts': val_counts,
