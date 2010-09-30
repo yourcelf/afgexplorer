@@ -1,6 +1,10 @@
 django==1.2.3
 -e git://github.com/toastdriven/django-haystack.git#egg=django-haystack
 pysolr
-#lxml
 httplib2
 django-debug-toolbar
+psycopg2
+
+## pip can't install egenix-mx-base, but psycopg requires it.  With virtualenv
+## activated, install the following:
+# easy_install -i http://downloads.egenix.com/python/index/ucs4/ egenix-mx-base

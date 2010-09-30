@@ -518,6 +518,7 @@ var ACRONYMS = [
     [/\b(UNAMA)\b/g, "United Nations Assistance Mission in Afghanistan"],
     [/\b(UNK)\b/g, "Unknown"],
     [/\b(usfor-a|USFOR-A)\b/g, "United States Forces Afghanistan"],
+    [/\b(USSF)\b/g, "United States Special Forces [Green Berets]"],
     [/\b(UXO)\b/g, "unexploded ordnance [or unfired]"],
     [/\b(VBIED)\b/g, "Vehicle-Borne Improvised Explosive Device"],
     [/\b(VCP)\b/g, "Vehicle Check Point"],

@@ -166,7 +166,8 @@ def search(request, about=False, api=False):
             # at the first two parts.
             field_name, lookup = (key + "__exact").rsplit(r'__')[0:2]
             # "type" is a reserved name for Solr, so munge it to "type_"
-            field_name = "type_" if field_name == "type" else field_name
+            if field_name == "type":
+                field_name = "type_"
             field = DiaryEntryIndex.fields.get(field_name, None)
             if field and field.faceted:
                 # Dates are handled specially below

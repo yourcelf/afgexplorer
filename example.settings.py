@@ -12,3 +12,5 @@ DATABASES = {
         'PORT': '',                      # Set to empty string for default. Not used with sqlite3.
     }
 }
+
+SECRET_KEY = "Change this to an arbitrary random long character string"

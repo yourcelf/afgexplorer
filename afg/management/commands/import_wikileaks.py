@@ -2,7 +2,6 @@ import re
 import os
 import csv
 import json
-import datetime
 import tempfile
 import itertools
 import subprocess
@@ -22,9 +21,10 @@ def clean_summary(text):
 
 class Command(BaseCommand):
     args = '<csv_file> <release_name>'
-    help = """Import the wikileaks Afghan War Diary CSV file."""
+    help = """Import the wikileaks Afghan War Diary CSV file(s)."""
 
     def handle(self, *args, **kwargs):
+        print args
         if len(args) < 2:
             print """Requires two arguments: the path to the wikileaks Afghan War Diary CSV file, and a string identifying this release (e.g. "2010 July 25").  The CSV file can be downloaded here:
 
@@ -76,19 +76,25 @@ http://wikileaks.org/wiki/Afghan_War_Diary,_2004-2010
                 key_list = list(report_keys)
                 for report_key in report_keys:
                     phrase_links[report_key][phrase] = key_list
+        phrases = None
 
         print "Writing CSV"
         # Write to CSV and bulk import.
         fields = rows[0].keys()
         fields.append('phrase_links')
         temp = tempfile.NamedTemporaryFile(delete=False)
-        name = temp.name
         writer = csv.writer(temp)
+        name = temp.name
         n = len(rows)
-        for c, row in enumerate(rows):
-            print "CSV", c, n
+        c = 0
+        # Pop rows to preserve memory (adding the json in phrase_links grows
+        # too fast).
+        while len(rows) > 0:
+            row = rows.pop(0)
+            print "CSV", c, len(rows), n
             row['phrase_links'] = json.dumps(phrase_links[row['report_key']])
             writer.writerow([row[f] for f in fields])
+            c += 1
         temp.close()
 
         print "Loading into postgres"
