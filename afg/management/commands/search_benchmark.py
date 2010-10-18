@@ -6,7 +6,7 @@
 # will run a benchmark with 10 concurrent users making 1000 requests, each to a
 # distinct random but valid search URL, so as to miss the cache often:
 #
-#   python manage.py build_benchmark http://example.com 1000 | xargs palb -c 10 -n 1000
+#   python manage.py search_benchmark http://example.com 1000 | xargs palb -c 10 -n 1000
 #
 import sys
 import urllib
