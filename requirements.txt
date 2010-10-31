@@ -1,4 +1,4 @@
-django==1.2.3
+django>=1.2.3
 -e git://github.com/toastdriven/django-haystack.git#egg=django-haystack
 pysolr
 httplib2

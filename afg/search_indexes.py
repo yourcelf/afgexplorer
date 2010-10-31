@@ -15,7 +15,7 @@ class DiaryEntryIndex(indexes.SearchIndex):
     summary = indexes.CharField(model_attr='summary')
     region = indexes.CharField(model_attr='region', faceted=True)
     attack_on = indexes.CharField(model_attr='attack_on', faceted=True)
-    complex_attack = indexes.BooleanField(model_attr='complex_attack', faceted=True)
+    complex_attack = indexes.BooleanField(model_attr='complex_attack', faceted=True, null=True)
     reporting_unit = indexes.CharField(model_attr='reporting_unit', faceted=True)
     unit_name = indexes.CharField(model_attr='unit_name', faceted=True)
     type_of_unit = indexes.CharField(model_attr='type_of_unit', faceted=True)
@@ -40,7 +40,7 @@ class DiaryEntryIndex(indexes.SearchIndex):
     classification = indexes.CharField(model_attr='classification', faceted=True)
     total_casualties = indexes.IntegerField(model_attr='total_casualties', faceted=True)
 
-    search_facet_display = ('date', 'type_', 'region', 'attack_on', 'type_of_unit', 'affiliation', 'dcolor', 'classification', 'category', 'total_casualties', 'civilian_kia', 'civilian_wia', 'host_nation_kia', 'host_nation_wia', 'friendly_kia', 'friendly_wia', 'enemy_kia', 'enemy_wia', 'enemy_detained')
+    search_facet_display = ('release', 'date', 'type_', 'region', 'attack_on', 'type_of_unit', 'affiliation', 'dcolor', 'classification', 'category', 'total_casualties', 'civilian_kia', 'civilian_wia', 'host_nation_kia', 'host_nation_wia', 'friendly_kia', 'friendly_wia', 'enemy_kia', 'enemy_wia', 'enemy_detained')
     offer_to_sort_by = (('Date', 'date'), ('Casualties', 'total_casualties')) # (display, field) pairs
 
     min_date = datetime.datetime(2004, 1, 1, 0, 0, 0)

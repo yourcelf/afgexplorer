@@ -6,6 +6,8 @@ from django.db import models
 
 def clean_summary(text):
     # Fix ampersand mess
+    if text.strip() == "<null value>":
+        return ""
     while text.find("&amp;") != -1:
         text = text.replace("&amp;", "&")
     text = re.sub('&(?!(#[a-z\d]+|\w+);)/gi', "&amp;", text)
@@ -17,7 +19,13 @@ def force_int(a):
 def float_or_null(f):
     if f:
         return float(f)
-    return "NULL"
+    return "<null value>"
+
+def complex_attack(f):
+    if f == "<null value>":
+        return f
+    else:
+        return bool(f)
 
 import_fields = [
     ("report_key",),       # 0
@@ -29,7 +37,7 @@ import_fields = [
     ("summary", clean_summary),          # 6
     ("region",),           # 7 
     ("attack_on",),        # 8
-    ("complex_attack", lambda f: bool(f)),   # 9 
+    ("complex_attack", complex_attack),   # 9 
     ("reporting_unit",),   # 10
     ("unit_name",),        # 11
     ("type_of_unit",),     # 12 
@@ -47,7 +55,7 @@ import_fields = [
     ("longitude", float_or_null),        # 24
     ("originator_group",), # 25
     ("updated_by_group",), # 26
-    ("ccir", lambda f: f or ""),             # 27
+    ("ccir",),             # 27
     ("sigact",),           # 28
     ("affiliation",),      # 29
     ("dcolor",),           # 30
@@ -65,7 +73,7 @@ class DiaryEntry(models.Model):
     summary = models.TextField()
     region = models.CharField(max_length=255)
     attack_on = models.CharField(max_length=255)
-    complex_attack = models.BooleanField()
+    complex_attack = models.NullBooleanField(null=True)
     reporting_unit = models.CharField(max_length=255)
     unit_name = models.CharField(max_length=255)
     type_of_unit = models.CharField(max_length=255)
