@@ -61,15 +61,6 @@ settings.
 3. Data
 ~~~~~~~
 
-For convenience, the script file ``reset_afgexplorer.sh`` runs all of the
-commands described below.  Modify the script file to reflect the username and
-password for your database and the location for the data file.  The import
-management commands assume that you are using postgresql, and will need
-modification for other databasees.
-
-The whole import process takes around 20 minutes on a reasonably modern
-machine.
-
 Importing data
 ==============
 
