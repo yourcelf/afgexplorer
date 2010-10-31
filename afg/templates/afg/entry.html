@@ -169,7 +169,7 @@
     {% endif %}
 </div>
 <div class='main'>
-    <h1>{{ entry.title }}</h1>
+    <h1 class='entry-title'>{{ entry.title }}</h1>
     <div style='clear: both;'>
         {{ entry.date }}
         <div style='float: right;' class='toggle-acronyms'>
@@ -219,5 +219,6 @@
         "{% url afg.entry_popup %}", 
         "<img src='{{ MEDIA_URL }}img/spinner.gif' alt='loading ...' />"
     );
+    $("h1.entry-title").html(acronyms($("h1.entry-title").html()));
 </script>
 </div>

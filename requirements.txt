@@ -1,5 +1,6 @@
 django>=1.2.3
--e git://github.com/toastdriven/django-haystack.git#egg=django-haystack
+# Use a version of django-haystack patched to support raw query params (Needed to set facet.limit)
+-e git://github.com/localbase/django-haystack.git#egg=django-haystack
 pysolr
 httplib2
 django-debug-toolbar

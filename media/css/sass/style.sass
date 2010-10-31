@@ -10,8 +10,14 @@ body
   text-align: left
   width: 950px
 
+.summary
+  font-family: "helvetica neue", arial, helvetica, sans-serif 
+  //font-family: Consolas, "Lucida Console", Monaco, monospace
+  //font-family: "Courier New",Courier,monospace
+
 h1, h2, h3, h4, h5, h6
   font-family: cambria, georgia, times, "times new roman", serif
+  //font-family: "Courier New",Courier,monospace
   font-size: 1.8em
   margin-top: 0.5em
   margin-bottom: 0.5em
@@ -50,7 +56,7 @@ li.searchresult
 table
   border-collapse: collapse
 acronym, .toggle-acronyms
-  color: #800
+  color: #500
   //border-top: 1px dotted #800
 
 .logo
@@ -112,8 +118,8 @@ acronym, .toggle-acronyms
 
 .date
   color: #555
-.category, .region, .casualties
-  color: #500
+.release, .category, .region, .casualties
+  color: #050
 
 .summary
   line-height: 2em
@@ -147,6 +153,9 @@ acronym, .toggle-acronyms
 .about
   margin-top: 3em
 
+h1.entry-title
+  font-size: 1.4em
+
 .main
   +column(16, true)
   
@@ -155,12 +164,12 @@ acronym, .toggle-acronyms
   padding: 1em
   .constraint
     margin-bottom: 0.1em
-    +border-radius(5px, 5px)
+    +border-radius(5px)
     background-color: #fa3
     padding: 0.2em
     margin-right: 1em
     a, a:visited
-      +border-radius(15px, 15px)
+      +border-radius(15px)
       text-decoration: none
       padding: 0.2em
   .sort
@@ -177,3 +186,4 @@ acronym, .toggle-acronyms
 
 .sparkline 
   margin-bottom: -7px
+

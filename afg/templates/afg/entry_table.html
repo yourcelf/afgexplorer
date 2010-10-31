@@ -2,12 +2,18 @@
 <ul>
     {% for entry, stub in entries %}
     <li class='searchresult'>
-    <a href='{% url afg.show_entry entry.report_key %}'>{{ entry.title }}</a> 
+    <a class='searchresult-title' href='{% url afg.show_entry entry.report_key %}'>{{ entry.title }}</a> 
     <span class='date'>{{ entry.date }}</span><br />
+    <span class='release'>{{ entry.release }}:</span>
     <span class='category'>{{ entry.category }}</span>,
     <span class='region'>{{ entry.region }}</span>,
     <span class='casualties' title='{{ entry|casualty_summary }}'>{{ entry.total_casualties }} casualties</span>
-    <p>{{ stub }}</p>
+    <p class='searchresult-stub'>{{ stub }}</p>
     </li>
     {% endfor %}
 </ul>
+<script type='text/javascript'>
+    $(".searchresult-title, .searchresult-stub").each(function(index, el) {
+        $(this).html(acronyms($(this).html()));
+    });
+</script>

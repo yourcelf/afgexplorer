@@ -60,7 +60,8 @@ def entry_popup(request):
 
 def random_entry(request):
     count = DiaryEntry.objects.count()
-    report_key = DiaryEntry.objects.all()[random.randint(0, count)].report_key
+    report_key = DiaryEntry.objects.all().values(
+            'report_key').order_by()[random.randint(0, count)]['report_key']
     return utils.redirect_to("afg.show_entry", report_key)
 
 def _excerpt(text, needles):
@@ -157,6 +158,8 @@ def search(request, about=False, api=False):
             date_fields[facet] = field
         else:
             sqs = sqs.facet(facet)
+    # XXX: Set field-specific range limit for total casualties
+    sqs = sqs.raw_params(**{'f.total_casualties_exact.facet.limit': 200})
 
     # Narrow query set by given facets
     for key,val in request.GET.iteritems():
@@ -398,8 +401,13 @@ def search(request, about=False, api=False):
                 'num_results': page.paginator.count,
             },
             'entries': [{
+                    'title': e.title,
+                    'date': e.date.isoformat(),
+                    'release': e.release,
+                    'region': e.region,
                     'report_key': e.report_key,
-                    'excerpt': x
+                    'excerpt': x,
+                    'total_casualties': e.total_casualties,
                  } for (e,x) in entries],
             'choices': remapped_choices,
             'sort': params['sort'],

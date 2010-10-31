@@ -139,6 +139,8 @@ function displayText(tokens, div, popup_url, loading_text) {
             },
             success: function(html) {
                 content.html(html);
+                toggleAcronyms($("#toggleAcronyms").is(":checked"),
+                               $(content).find(".searchresult-title, .searchresult-stub").find("acronym"));
             },
             error: function() {
                 content.html("Error communicating with server.");
@@ -543,16 +545,19 @@ function acronyms(string) {
     }
     return string;
 }
-function toggleAcronyms(expand) {
-    $("acronym").each(function(index, acronym_element) {
+function toggleAcronyms(expand, selector) {
+    if (selector == undefined) {
+        selector = $("acronym");
+    }
+    if (expand == undefined) {
+        expand = $("#toggleAcronyms").is(":checked");
+    }
+    selector.each(function(index, acronym_element) {
         var a = $(acronym_element);
         var html = a.html();
         var title = a.attr("title");
         var acronym = html.length < title.length ? html : title;
         var definition = html.length > title.length ? html : title;
-        if (expand == undefined) {
-            expand = $("#toggleAcronyms").is(":checked");
-        }
         if (expand) {
             a.attr("title", acronym);
             a.html(definition);

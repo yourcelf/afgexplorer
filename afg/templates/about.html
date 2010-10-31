@@ -1,27 +1,24 @@
 <div class='about'>
-<p style='font-size: 14px; background-color: #ddffff; padding: 0.5em; border: 1px solid #aaaaff;'><b>2010-10-15:</b> This is the beta version for an update to DiaryDig.  If you encounter bugs, please <a href='http://github.com/yourcelf/afgexplorer/issues'>file an issue</a> on GitHub.  Thanks for trying it out!</p>
+<p><b>New:</b> Search Iraq and Afghanistan war logs together!</p>
+
 <p><b><a href='/'>DiaryDig.org</a></b> is an independently produced website
-which provides an easy way to search through the 
-<a href='http://wikileaks.org/wiki/Afghan_War_Diary,_2004-2010'>Afghan War Diaries</a>, 
-which were made public by <a href='http://wikileaks.org/'>Wikileaks</a> 
-on 25th July 2010.  The documents are a set of over 76,000 reports (with more
-coming in the future) which cover the war in Afghanistan from 2004 to 2009.
-</p>
-<p>From here, you can <a href='{% url afg.search %}'>browse through all of the documents</a> 
-that have been released, organized by type, category, date, number of
-casualties, and many other properties.  From any 
+which provides an easy way to search through the war logs released by <a href='http://wikileaks.org'>Wikileaks</a>, including the <a href='http://wikileaks.org/wiki/Afghan_War_Diary,_2004-2010'>Afghan War Diary</a> and the <a href='http://warlogs.wikileaks.org/'>Iraq War Logs</a>.</p>
+
+<p>From here, you can <a href='{% url afg.search %}'>browse through all of the
+    documents</a> that have been released, organized by type, category, date,
+number of casualties, and many other properties.  From any 
 <a href='{% url afg.show_entry 1026228 %}'>document page</a>, clicking on the
 <span class='links numlinks9' style='cursor: auto'>green underlined</span> text
 will open a popup that links to other documents that contain those phrases,
 making it possible to see important search terms and connections that you might
 not otherwise notice.</p>
+
 <p>Our hope is that this tool will be helpful to reporters and researchers who
-are interested in learning more about the US's war in Afghanistan and making
+are interested in learning more about the US's ongoing wars, and making
 sense of this important database.  If you wish to support this work, we
 encourage you to make a 
-<a href='http://wikileaks.org/wiki/WikiLeaks:Donate'>donation to wikileaks</a> or the <a href='http://www.bradleymanning.org/'>Bradley Manning legal defense fund</a>.
+<a href='http://warlogs.wikileaks.org/media/support.html'>donation to wikileaks</a> or the <a href='http://www.bradleymanning.org/'>Bradley Manning legal defense fund</a>.
 </p>
-<a href="http://github.com/yourcelf/afgexplorer"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_green_007200.png" alt="Fork me on GitHub" /></a>
 
 <p>Source code for this website is freely available on 
 <a href='http://github.com/yourcelf/afgexplorer'>github</a> &ndash; we welcome
@@ -30,8 +27,7 @@ any contributions, improvements or suggestions.</p>
 <p style='font-size: larger; margin-left: 2em'><a href='{% url afg.search %}'>On to the documents.</a></p>
 <br />
 <br />
-<p><b>New: Acronyms</b>.  Many acronyms are now highlighted, and can be expanded by mousing over them.  The acronyms are taken from <a href='http://www.guardian.co.uk/world/datablog/2010/jul/25/wikileaks-afghanistan-war-logs-glossary'>guardian.co.uk's glossary</a>.  Do you know of more acronyms that could be included?  Please leave a comment at the <a href='http://github.com/yourcelf/afgexplorer'>github project</a>.</p>
 
-<p><b>New: API</b>.  Developers wishing to leverage this website for their own applications can now use Diary Dig to return JSON data.  See <a href='{% url afg.api %}'>API</a> for details.
+<p><b>API:</b>  Developers wishing to leverage this website for their own applications can use Diary Dig to return JSON data.  See <a href='{% url afg.api %}'>API</a> for details.
 </p>
 </div>
