@@ -568,5 +568,18 @@ function toggleAcronyms(expand, selector) {
             $(".acronyms-expanded").hide();
         }
     });
+    // session cookie.  Cleared at end of session.
+    document.cookie = "expandAcronyms=" + ($("#toggleAcronyms").is(":checked") ? 1 : 0) + "; path=/;";
 }
+$(document).ready(function() {
+    var expand = document.cookie.match('(?:^|;) ?expandAcronyms=([^;]*)(?:;|$)');
+    if (expand && expand.length > 1 && expand[1] == '1' && !$("toggleAcronyms").is(':checked')) {
+        // set checked state, so toggleAcronyms works...
+        $("#toggleAcronyms").attr('checked', true);
+        // Display message and run toggleAcronyms (also toggles checked state)
+        $("#toggleAcronyms").trigger('click');
+        // switch checked state back to checked.
+        $("#toggleAcronyms").attr('checked', true);
+    }
+});
 
