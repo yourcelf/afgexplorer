@@ -5,6 +5,9 @@ This is the Django source code that runs http://diarydig.org, a tool which
 enables rich browsing and searching of the WikiLeaks Afghan War Diaries
 document archive.
 
+You may be interested in the `DocuDig fork <http://github.com/yourcelf/docudig>`_,
+which generalizes this application to any structured data set.
+
 Installation
 ------------
 
