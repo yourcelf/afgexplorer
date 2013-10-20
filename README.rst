@@ -1,7 +1,7 @@
 afgexplorer
 +++++++++++
 
-This is the Django source code that runs http://diarydig.org, a tool which
+This is the Django source code that runs http://wardiaries.wikileaks.org, a tool which
 enables rich browsing and searching of the WikiLeaks Afghan War Diaries
 document archive.
 
